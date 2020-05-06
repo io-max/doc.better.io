@@ -191,7 +191,10 @@
           <div class="post-content mx-auto" id="post">
             
             <article class="markdown-body">
-              <h1 id="Jdk-Reflection"><a href="#Jdk-Reflection" class="headerlink" title="Jdk-Reflection"></a>Jdk-Reflection</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Java反射机制可以让我们在编译期(Compile Time)之外的运行期(Runtime)检查类，接口，变量以及方法的信息。反射还可以让我们在运行期实例化对象，调用方法，通过调用get/set方法获取变量的值。</p>
+              <p>该文章主要讲述Java中Reflection反射相关的API使用，以及一些常见问题。</p>
+<a id="more"></a>
+
+<h1 id="Jdk-Reflection"><a href="#Jdk-Reflection" class="headerlink" title="Jdk-Reflection"></a>Jdk-Reflection</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>Java反射机制可以让我们在编译期(Compile Time)之外的运行期(Runtime)检查类，接口，变量以及方法的信息。反射还可以让我们在运行期实例化对象，调用方法，通过调用get/set方法获取变量的值。</p>
 <h2 id="Class"><a href="#Class" class="headerlink" title="Class"></a>Class</h2><h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><p><code>Class的实例表示正在运行的Java应用程序的类和接口</code>。 枚举是一种类和注释是一种接口。</p>
 <p>每个数组都属于一个被映射成Class对象的类，该对象由具有相同元素类型和大小的所有数组共享。 </p>
 <p>原始类型<code>(boolean， byte， char， short， int， long， float，double)</code>，以及关键字<code>void</code>也表示为Class对象。</p>
