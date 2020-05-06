@@ -1,7 +1,7 @@
 ---
 title: Reflection
 date: 2020-05-06 16:34:51
-tags: Reflection,Java
+tags: Reflection
 ---
 
 # Jdk-Reflection
