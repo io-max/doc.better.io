@@ -3,8 +3,12 @@ title: Reflection
 date: 2020-05-06 16:34:51
 tags: [Reflection,Java]
 categories: [Java]
-index_img: /images/java_128.png
+index_img: /images/java_270.png
 ---
+
+该文章主要讲述Java中Reflection反射相关的API使用，以及一些常见问题。
+
+<!-- more -->
 
 # Jdk-Reflection
 
