@@ -1,7 +1,9 @@
 ---
 title: Reflection
 date: 2020-05-06 16:34:51
-tags: Reflection
+tags: [Reflection,Java]
+index_img: /images/java.png
+banner_img: /images/java.png
 ---
 
 # Jdk-Reflection
