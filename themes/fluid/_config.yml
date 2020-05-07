@@ -11,9 +11,9 @@
 # 全局
 # Site
 #---------------------------
-favicon: /img/logo.png # 网站标签页的 icon
+favicon: https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png # 网站标签页的 icon
 
-apple_touch_icon: /img/logo.png # 用于苹果设备的 icon
+apple_touch_icon: https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png # 用于苹果设备的 icon
 
 title_join_string: ' - '  # 浏览器标签页中的标题分隔符，效果： 文章名 - 站点名
 
@@ -368,17 +368,41 @@ links:
       title: 'Fluid Docs',
       intro: '主题使用指南',
       link: 'https://hexo.fluid-dev.com/docs/',
-      image: '/img/favicon.png'
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
     }
     - {
       title: 'Fluid Repo',
       intro: '主题 GitHub 仓库',
       link: 'https://github.com/fluid-dev/hexo-theme-fluid',
-      image: '/img/favicon.png'
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
     }
     - {
       title: 'Fluid Example',
       intro: '主题操作示例',
       link: 'https://hexo.fluid-dev.com/docs/example/',
-      image: '/img/favicon.png'
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
+    }
+    - {
+      title: 'Fluid Example',
+      intro: '主题操作示例',
+      link: 'https://hexo.fluid-dev.com/docs/example/',
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
+    }
+    - {
+      title: 'Fluid Example',
+      intro: '主题操作示例',
+      link: 'https://hexo.fluid-dev.com/docs/example/',
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
+    }
+    - {
+      title: 'Fluid Example',
+      intro: '主题操作示例',
+      link: 'https://hexo.fluid-dev.com/docs/example/',
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
+    }
+    - {
+      title: 'Fluid Example',
+      intro: '主题操作示例',
+      link: 'https://hexo.fluid-dev.com/docs/example/',
+      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
     }

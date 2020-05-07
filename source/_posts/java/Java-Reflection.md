@@ -1,9 +1,13 @@
 ---
-title: Reflection
+title: Java-Reflection
+tags:
+  - Reflection
+  - Java
+categories:
+  - Java
+index_img: /images/flowers_640.jpg
+abbrlink: 53429
 date: 2020-05-06 16:34:51
-tags: [Reflection,Java]
-categories: [Java]
-index_img: /images/java_270.png
 ---
 
 该文章主要讲述Java中Reflection反射相关的API使用，以及一些常见问题。
@@ -194,17 +198,11 @@ public void testConstructorInstance() throws Exception {
 }
 ```
 
-
-
-
-
 #### `Method`
 
 讲完`Constructor`的使用，已经能通过其创建对象了，那如何调用目标对象中的方法呢？
 
 与Constructor类似，Class提供了`getMethods，getMethod(String methodName, Class<?> ...paramType)`方法分别获取执行类的`所有方法(包括静态方法，父类继承下来的方法)`和`指定方法`。
-
-
 
 ```java
 @Test
@@ -227,8 +225,6 @@ public void testGetMethod() throws Exception {
 ![image-20200506141809485](https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200506163345.png)
 
 从结果可以看出，私有方法未被获取到，和Constructor类似这两个方法不能获取私有方法，要想获取私有方法必须使用
-
-
 
 ```java
 @Test
@@ -271,8 +267,6 @@ public void testInvokedMethod() throws Exception {
   System.out.println(methodResult);
 }
 ```
-
-
 
 #### `Field`
 
