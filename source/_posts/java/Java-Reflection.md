@@ -1,11 +1,8 @@
 ---
-title: Java-Reflection
-tags:
-  - Reflection
-  - Java
-categories:
-  - Java
-index_img: /images/flowers_640.jpg
+title: Reflection-反射
+tags: [Reflection, Java]
+categories: Reflection
+index_img: /images/01/05.png
 abbrlink: 53429
 date: 2020-05-06 16:34:51
 ---
