@@ -13,8 +13,8 @@ timezone: ''
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: https://io-better-chen.github.io/better.github.io
-root: /better.github.io/
+url: https://doc.io-better.cn
+root: /doc.io-better.cn/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -99,6 +99,6 @@ theme: fluid
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: 'git'
-  repo: https://github.com/io-better-chen/better.github.io.git
+  repo: https://github.com/io-better-chen/doc.better.io.git
   branch: gh-pages
 
