@@ -1,8 +1,5 @@
-# Hexo Configuration
-## Docs: https://hexo.io/docs/configuration.html
-## Source: https://github.com/hexojs/hexo/
+# hexo 博客的配置
 
-# Site
 title: IO.BETTER的博客
 subtitle: '没有最好只有更好!'
 description: 'IO.BETTER的博客'
@@ -12,7 +9,6 @@ language: zh-CN
 timezone: ''
 
 # URL
-## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: https://doc.io-better.cn
 root: /
 permalink: :year/:month/:day/:title/
@@ -101,4 +97,3 @@ deploy:
   type: 'git'
   repo: https://github.com/io-better-chen/doc.better.io.git
   branch: gh-pages
-

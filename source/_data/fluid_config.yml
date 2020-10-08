@@ -107,7 +107,7 @@ navbar:
     - { key: 'category', link: '/categories/', icon: 'iconfont icon-category-fill' }
     - { key: 'tag', link: '/tags/', icon: 'iconfont icon-tags-fill' }
     - { key: 'about', link: '/about/', icon: 'iconfont icon-user-fill' }
-    #- { key: 'links', link: '/links/', icon: 'iconfont icon-link-fill' }  # 友链页，把前面#去掉即可展示
+    # - { key: 'links', link: '/links/', icon: 'iconfont icon-link-fill' } 
 
 search: # 搜索栏
   enable: true
@@ -135,7 +135,7 @@ footer:
     uv_format: "总访客数 {} 人"
 
   beian:  # The footer of China's website policy, other areas keep disable
-    enable: true
+    enable: false
     icp_text: 京ICP备18057967号 # ICP证号
     police_text: 京ICP备18057967号 # 公安备案号，不填则只显示ICP
     police_code: 18057967 # 公安备案的编号，用于URL跳转查询
@@ -364,12 +364,6 @@ links:
   banner_mask_alpha: 0.3  # available: 0 - 1.0
   subtitle:  # 打字机内容
   items:  # intro 与 image 可省略
-    - {
-      title: 'Fluid Docs',
-      intro: '主题使用指南',
-      link: 'https://hexo.fluid-dev.com/docs/',
-      image: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png'
-    }
     - {
       title: 'Fluid Repo',
       intro: '主题 GitHub 仓库',
