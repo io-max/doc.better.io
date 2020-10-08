@@ -1,5 +1,5 @@
 ---
-title: jenkins
+title: Jenkins
 abbrlink: 34699
 date: 2020-10-07 13:20:04
 categories: CI
