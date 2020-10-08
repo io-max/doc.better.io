@@ -1,14 +1,15 @@
 ---
-title: Jenkins
-abbrlink: 34699
-date: 2020-10-07 13:20:04
+title: Jenkins Pipeline
 categories: CI
-# index_img: /img/flowers_640.jpg
-index_img: https://img.icons8.com/color/480/000000/jenkins.png
-tags: [CI, Jenkins]
+index_img: 'https://img.icons8.com/color/480/000000/jenkins.png'
+tags:
+  - CI
+  - Jenkins
+  - Pipeline
+abbrlink: 27713
 ---
 
-该文章主要讲述代模式以及其实现方式，主要是 `静态代理` , `动态代理`, `Cglib代理`.
+该文章主要Jenkins Pipeline的使用
 
 <!-- more -->
 
