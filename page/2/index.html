@@ -17,7 +17,7 @@
   <meta name="description" content="IO.BETTER的博客">
   <meta name="author" content="Better.Chen">
   <meta name="keywords" content="">
-  <title>分类 - IO.BETTER的博客</title>
+  <title>IO.BETTER的博客</title>
 
   <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
 
@@ -43,7 +43,7 @@
 
 
 <body>
-  <header style="height: 60vh;">
+  <header style="height: 100vh;">
     <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand"
@@ -150,6 +150,10 @@
           </div>
 
           
+            <div class="scroll-down-bar">
+              <i class="iconfont icon-arrowdown"></i>
+            </div>
+          
         </div>
       </div>
     </div>
@@ -159,7 +163,7 @@
     
       <div class="container nopadding-md">
         <div class="py-5" id="board"
-          >
+          style=margin-top:0>
           
           <div class="container">
             <div class="row">
@@ -167,232 +171,258 @@
                 
 
 
-
-
-
-
-
-<div class="category-list">
-  
-  
-  
-  
+  <div class="row mx-auto index-card">
     
     
-    <div class="category row">
-      <a
-        class="category-item collapsed list-group-item category-item-action col-10 col-md-11"
-        id="heading-ckg1l3fou000205r67sth7ow9" role="tab" data-toggle="collapse" href="#collapse-ckg1l3fou000205r67sth7ow9"
-        aria-expanded="false"
-      >
-        Spring
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      <a href="/categories/Spring/" class="category-count col-2 col-md-1">
-        <i class="iconfont icon-articles"></i>
-        <span>5</span>
-      </a>
-      <div class="category-collapse">
-        
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/10/09/mybatis-execute/index/" target="_self">
+          <img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20201009091738.png" srcset="/img/loading.gif" alt="Mybatis-执行">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/10/09/mybatis-execute/index/">Mybatis-执行</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/10/09/mybatis-execute/index/">
           
-  <div id="collapse-ckg1l3fou000205r67sth7ow9" class="collapse in" role="tabpanel"
-       aria-labelledby="heading-ckg1l3fou000205r67sth7ow9">
-    
-    
-    
-      
-      
-        <a href="/2020/10/09/spring-bean-definition-registry/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Ioc-Spring-BeanDefinition注册</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2020/10/09/spring-bean-definition-reader/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Ioc-Spring-BeanDefinition读取</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2020/10/09/spring-bean-definition/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Ioc-Spring-Bean定义</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2020/10/09/spring-core-interface/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Ioc-Spring-核心接口</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2020/10/09/spring-introduction/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Ioc-Spring-简介</span>
-        </a>
-      
-    
-  </div>
+          
+            
+          
+          Mybatis-语句执行本章讲述的内容本章主要讲解Mybatis在启动后是如何执行Mapper文件中对应SQL语句的。带着下面几个问题我们正式进入Mybatis语句执行分析。
 
+1、Mybatis是如何实现一级缓存的？
+2、Mybatis是如何执行SQL的？有几种执行器？
+3、Mybatis是如何处理查询结果的？
+
+想知道如何使用Mybatis请参考Mybatis官方文档。
+相关配置配置XML&l
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-10-09 01:41" pubdate>
+              2020-10-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Java/">Java</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/Orm/">Orm</a>
+            
+              <a href="/tags/Mybatis/">Mybatis</a>
+            
+          </div>
         
       </div>
-    </div>
-  
-    
-    
-    <div class="category row">
-      <a
-        class="category-item collapsed list-group-item category-item-action col-10 col-md-11"
-        id="heading-ckg1l3fph000r05r69a7le1l3" role="tab" data-toggle="collapse" href="#collapse-ckg1l3fph000r05r69a7le1l3"
-        aria-expanded="false"
-      >
-        Java
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      <a href="/categories/Java/" class="category-count col-2 col-md-1">
-        <i class="iconfont icon-articles"></i>
-        <span>2</span>
-      </a>
-      <div class="category-collapse">
-        
-          
-  <div id="collapse-ckg1l3fph000r05r69a7le1l3" class="collapse in" role="tabpanel"
-       aria-labelledby="heading-ckg1l3fph000r05r69a7le1l3">
-    
-    
-    
-      
-      
-        <a href="/2020/10/09/mybatis-execute/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Mybatis-执行</span>
-        </a>
-      
-    
-      
-      
-        <a href="/2020/10/09/mybatis-init-load/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Mybaits-启动加载</span>
-        </a>
-      
-    
+    </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/10/09/mybatis-init-load/index/" target="_self">
+          <img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20201009091738.png" srcset="/img/loading.gif" alt="Mybaits-启动加载">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/10/09/mybatis-init-load/index/">Mybaits-启动加载</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/10/09/mybatis-init-load/index/">
+          
+          
+            
+          
+          Mybatis-启动加载本章节讲述的内容
+本章节主要分析Mybatis在启动时做了那些操作。带着以下疑问去阅读本章内容。本章内容涉及了大量的mybatis源码。
+1、Mybaits是如何解析配置文件（mybatis-config.xml）？
+2、Mybaits是如何解析Mapper文件（mapper.xml）？
+3、Mybatis是如何设计
+
+想知道如何使用Mybatis请参考Mybatis官方文
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-10-09 01:41" pubdate>
+              2020-10-09
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Java/">Java</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/Orm/">Orm</a>
+            
+              <a href="/tags/Mybatis/">Mybatis</a>
+            
+          </div>
         
       </div>
-    </div>
-  
-    
-    
-    <div class="category row">
-      <a
-        class="category-item collapsed list-group-item category-item-action col-10 col-md-11"
-        id="heading-ckg1l3fp2000c05r6541t51tt" role="tab" data-toggle="collapse" href="#collapse-ckg1l3fp2000c05r6541t51tt"
-        aria-expanded="false"
-      >
-        Reflection
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      <a href="/categories/Reflection/" class="category-count col-2 col-md-1">
-        <i class="iconfont icon-articles"></i>
-        <span>1</span>
-      </a>
-      <div class="category-collapse">
-        
-          
-  <div id="collapse-ckg1l3fp2000c05r6541t51tt" class="collapse in" role="tabpanel"
-       aria-labelledby="heading-ckg1l3fp2000c05r6541t51tt">
-    
-    
-    
-      
-      
-        <a href="/2020/05/06/java/Java-Reflection/" class="list-group-item list-group-item-action">
-          <span class="category-post">Reflection-反射</span>
-        </a>
-      
-    
+    </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/05/06/java/Java-Reflection/" target="_self">
+          <img src="https://img.icons8.com/color/480/000000/java-coffee-cup-logo.png" srcset="/img/loading.gif" alt="Reflection-反射">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/05/06/java/Java-Reflection/">Reflection-反射</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/05/06/java/Java-Reflection/">
+          
+          
+            
+          
+          该文章主要讲述Java中Reflection反射相关的API使用，以及一些常见问题。
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-06 16:34" pubdate>
+              2020-05-06
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Reflection/">Reflection</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/Reflection/">Reflection</a>
+            
+          </div>
         
       </div>
-    </div>
-  
-    
-    
-    <div class="category row">
-      <a
-        class="category-item collapsed list-group-item category-item-action col-10 col-md-11"
-        id="heading-ckg1l3fp3000e05r6g7996lii" role="tab" data-toggle="collapse" href="#collapse-ckg1l3fp3000e05r6g7996lii"
-        aria-expanded="false"
-      >
-        CI
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      <a href="/categories/CI/" class="category-count col-2 col-md-1">
-        <i class="iconfont icon-articles"></i>
-        <span>1</span>
-      </a>
-      <div class="category-collapse">
-        
-          
-  <div id="collapse-ckg1l3fp3000e05r6g7996lii" class="collapse in" role="tabpanel"
-       aria-labelledby="heading-ckg1l3fp3000e05r6g7996lii">
-    
-    
-    
-      
-      
-        <a href="/2020/10/09/jenkins/index/" class="list-group-item list-group-item-action">
-          <span class="category-post">Jenkins Pipeline</span>
-        </a>
-      
-    
+    </article>
   </div>
 
+  <div class="row mx-auto index-card">
+    
+    
+      <div class="col-12 col-md-4 m-auto index-img">
+        <a href="/2020/05/06/java/Java-Proxy/" target="_self">
+          <img src="https://img.icons8.com/color/480/000000/java-coffee-cup-logo.png" srcset="/img/loading.gif" alt="Proxy-代理">
+        </a>
+      </div>
+    
+    <article class="col-12 col-md-8 mx-auto index-info">
+      <h1 class="index-header">
+        <a href="/2020/05/06/java/Java-Proxy/">Proxy-代理</a>
+      </h1>
+
+      <p class="index-excerpt">
+        <a href="/2020/05/06/java/Java-Proxy/">
+          
+          
+            
+          
+          该文章主要讲述代模式以及其实现方式，主要是 静态代理 , 动态代理, Cglib代理.
+        </a>
+      </p>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2020-05-06 16:34" pubdate>
+              2020-05-06
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-category"></i>
+            
+              <a href="/categories/Proxy/">Proxy</a>
+            
+          </div>
+        
+        
+          <div class="post-meta">
+            <i class="iconfont icon-tags"></i>
+            
+              <a href="/tags/Java/">Java</a>
+            
+              <a href="/tags/Proxy/">Proxy</a>
+            
+          </div>
         
       </div>
-    </div>
-  
-    
-    
-    <div class="category row">
-      <a
-        class="category-item collapsed list-group-item category-item-action col-10 col-md-11"
-        id="heading-ckg1l3fps001i05r66ebgfxyc" role="tab" data-toggle="collapse" href="#collapse-ckg1l3fps001i05r66ebgfxyc"
-        aria-expanded="false"
-      >
-        Proxy
-        <i class="iconfont icon-arrowright"></i>
-      </a>
-      <a href="/categories/Proxy/" class="category-count col-2 col-md-1">
-        <i class="iconfont icon-articles"></i>
-        <span>1</span>
-      </a>
-      <div class="category-collapse">
-        
-          
-  <div id="collapse-ckg1l3fps001i05r66ebgfxyc" class="collapse in" role="tabpanel"
-       aria-labelledby="heading-ckg1l3fps001i05r66ebgfxyc">
-    
-    
-    
-      
-      
-        <a href="/2020/05/06/java/Java-Proxy/" class="list-group-item list-group-item-action">
-          <span class="category-post">Proxy-代理</span>
-        </a>
-      
-    
+    </article>
   </div>
 
-        
-      </div>
-    </div>
+
+
+  <nav aria-label="navigation">
+    <span class="pagination" id="pagination">
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    </span>
+  </nav>
   
-</div>
+  <script>
+    for (ele of document.getElementById("pagination").getElementsByTagName("a")) {
+      ele.href += '#board';
+    }
+  </script>
+
+
 
               </div>
             </div>
@@ -487,7 +517,7 @@
     var typed = new Typed('#subtitle', {
       strings: [
         '  ',
-        "分类&nbsp;",
+        "欢迎来到IO.BETTER的博客&nbsp;",
       ],
       cursorChar: "_",
       typeSpeed: 70,

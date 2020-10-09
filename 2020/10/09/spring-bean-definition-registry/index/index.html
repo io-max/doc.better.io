@@ -1,0 +1,861 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" type="image/png" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IO.BETTER的博客">
+  <meta name="author" content="Better.Chen">
+  <meta name="keywords" content="">
+  <title>Ioc-Spring-BeanDefinition注册 - IO.BETTER的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+    
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>IO.BETTER</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/back.webp') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2020-10-09 09:35" pubdate>
+        2020年10月9日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      2.3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      32
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Ioc-Spring-BeanDefinition注册</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <h1 id="Ioc-Bean注册"><a href="#Ioc-Bean注册" class="headerlink" title="Ioc-Bean注册"></a>Ioc-Bean注册</h1><h2 id="本文内容"><a href="#本文内容" class="headerlink" title="本文内容"></a>本文内容</h2><blockquote>
+<p>本文主要讲述BeanDefinitionRegistry接口是如何注册BeanDefinition？</p>
+<p>主要讲解DefaultListableBeanFactory，AnnotationConfigApplicationContext，GenericApplicationContext三个上下文是如何对BeanDefinition进行注册的。</p>
+</blockquote>
+<h2 id="BeanDefinitionRegistry"><a href="#BeanDefinitionRegistry" class="headerlink" title="BeanDefinitionRegistry"></a>BeanDefinitionRegistry</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上面讲到了BeanDefinition的读取方式，拿到BeanDefinition后需要将其注册到容器中，Spring是用什么将其注册到容器中的呢？</p>
+<p>没错就是上面源代码中频繁提到的BeanDefinitionRegistry对象。</p>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>BeanDefinitionRegistry是包含BeanDefinition的注册的接口，这是Spring Bean工厂软件包中唯一封装Bean定义注册的接口。</p>
+<p>标准BeanFactory接口仅涵盖对完全配置的工厂实例的访问。Spring的<code>BeanDefinitionReader</code>希望可以使用此接口的实现。</p>
+<p>Spring核心中的已知实现者是<code>DefaultListableBeanFactory</code>和<code>GenericApplicationContext</code>。</p>
+<h3 id="类继承图"><a href="#类继承图" class="headerlink" title="类继承图"></a>类继承图</h3><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200517180016.png" srcset="/img/loading.gif" alt="image-20200517161204618" style="zoom:50%;" />
+
+<p>我们看到了<code>DefaultListableBeanFactory</code>、<code>GenericApplicationContext</code>、<code>AnnotationConfigApplicationContext</code>等类。</p>
+<p>重点关注上面几个类的实现。</p>
+<h3 id="源代码"><a href="#源代码" class="headerlink" title="源代码"></a>源代码</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">BeanDefinitionRegistry</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AliasRegistry</span> </span>&#123;
+  <span class="hljs-comment">// 注册BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">registerBeanDefinition</span><span class="hljs-params">(String beanName, BeanDefinition beanDefinition)</span></span>
+<span class="hljs-function">    <span class="hljs-keyword">throws</span> BeanDefinitionStoreException</span>;
+
+  <span class="hljs-comment">// 根据指定的Bean名称删除BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">removeBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException</span>;
+
+  <span class="hljs-comment">// 根据指定的Bean名称获取BeanDefinition</span>
+  <span class="hljs-function">BeanDefinition <span class="hljs-title">getBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException</span>;
+
+  <span class="hljs-comment">// 是否包含指定的Bean名称</span>
+  <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">containsBeanDefinition</span><span class="hljs-params">(String beanName)</span></span>;
+
+  <span class="hljs-comment">// 返回注册器中所有的BeanDefinition名称</span>
+  String[] getBeanDefinitionNames();
+
+ 	<span class="hljs-comment">// 获取BeanDefinition的数量</span>
+  <span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">getBeanDefinitionCount</span><span class="hljs-params">()</span></span>;
+
+  <span class="hljs-comment">// 指定的Bean名称是否被使用</span>
+  <span class="hljs-function"><span class="hljs-keyword">boolean</span> <span class="hljs-title">isBeanNameInUse</span><span class="hljs-params">(String beanName)</span></span>;
+&#125;</code></pre>
+
+<p>接口中定义了BeanDefinition增删改查的接口，并继承了AliasRegistry接口。</p>
+<h3 id="AliasRegistry"><a href="#AliasRegistry" class="headerlink" title="AliasRegistry"></a><code>AliasRegistry</code></h3><h4 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h4><p>顾名思义AliasRegistry是一个别名注册器，用于注册别名。</p>
+<h4 id="源代码-1"><a href="#源代码-1" class="headerlink" title="源代码"></a>源代码</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">AnnotationConfigRegistry</span> </span>&#123;
+
+  <span class="hljs-comment">// 注册指定的Class数组</span>
+  <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">register</span><span class="hljs-params">(Class&lt;?&gt;... componentClasses)</span></span>;
+
+  <span class="hljs-comment">// 注册指定包路径下的Bean</span>
+  <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">scan</span><span class="hljs-params">(String... basePackages)</span></span>;
+&#125;</code></pre>
+
+
+
+<h3 id="GenericApplicationContext"><a href="#GenericApplicationContext" class="headerlink" title="GenericApplicationContext"></a><code>GenericApplicationContext</code></h3><h4 id="简介-2"><a href="#简介-2" class="headerlink" title="简介"></a>简介</h4><p>GenericApplicationContext是通用ApplicationContext实现，其内部引用了<code>DefaultListableBeanFactory</code>实例，实现BeanDefinitionRegistry接口，以便允许将任何Bean定义读取器应用于该接口。</p>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><p>通用做法是通过BeanDefinitionRegistry接口注册各种Bean定义，然后调用<code>refresh()</code>以使用应用程序上下文语义来初始化这些Bean（处理org.springframework.context.ApplicationContextAware，自动检测BeanFactoryPostProcessors等）。</p>
+<h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><p>与为每次刷新创建一个新的内部BeanFactory实例的其他ApplicationContext实现相反，此上下文的内部BeanFactory从一开始就可用，以便能够在其上注册BeanDefinition。<code>refresh()只能被调用一次</code>。</p>
+<p>对于应该以可刷新方式读取特殊bean定义格式的自定义应用程序上下文实现，请考虑从<strong>AbstractRefreshableApplicationContext</strong>基类派生。</p>
+<h4 id="源代码-2"><a href="#源代码-2" class="headerlink" title="源代码"></a>源代码</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">GenericApplicationContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractApplicationContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">BeanDefinitionRegistry</span> </span>&#123;
+	<span class="hljs-comment">// BeanFactory，此对象也实现了BeanDefinitionRegistry接口</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> DefaultListableBeanFactory beanFactory;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">GenericApplicationContext</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.beanFactory = <span class="hljs-keyword">new</span> DefaultListableBeanFactory();
+  &#125;
+	
+  <span class="hljs-comment">// 注册BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">registerBeanDefinition</span><span class="hljs-params">(String beanName, BeanDefinition beanDefinition)</span></span>
+<span class="hljs-function">    <span class="hljs-keyword">throws</span> BeanDefinitionStoreException </span>&#123;
+
+    <span class="hljs-keyword">this</span>.beanFactory.registerBeanDefinition(beanName, beanDefinition);
+  &#125;
+	<span class="hljs-comment">// 删除BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">removeBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException </span>&#123;
+    <span class="hljs-keyword">this</span>.beanFactory.removeBeanDefinition(beanName);
+  &#125;
+	
+  <span class="hljs-comment">// 获取BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> BeanDefinition <span class="hljs-title">getBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException </span>&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.beanFactory.getBeanDefinition(beanName);
+  &#125;
+
+	<span class="hljs-comment">// Bean是否被使用</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isBeanNameInUse</span><span class="hljs-params">(String beanName)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.beanFactory.isBeanNameInUse(beanName);
+  &#125;
+	
+  <span class="hljs-comment">// 注册bean别名</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">registerAlias</span><span class="hljs-params">(String beanName, String alias)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.beanFactory.registerAlias(beanName, alias);
+  &#125;
+
+	<span class="hljs-comment">// 删除bean别名</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">removeAlias</span><span class="hljs-params">(String alias)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.beanFactory.removeAlias(alias);
+  &#125;
+
+  <span class="hljs-comment">// 是否存在别名</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isAlias</span><span class="hljs-params">(String beanName)</span> </span>&#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.beanFactory.isAlias(beanName);
+  &#125;
+	
+  <span class="hljs-comment">// 注册Bean</span>
+  <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">registerBean</span><span class="hljs-params">(@Nullable String beanName, Class&lt;T&gt; beanClass,</span></span>
+<span class="hljs-function"><span class="hljs-params">                               @Nullable Supplier&lt;T&gt; supplier, BeanDefinitionCustomizer... customizers)</span> </span>&#123;
+
+    ClassDerivedBeanDefinition beanDefinition = <span class="hljs-keyword">new</span> ClassDerivedBeanDefinition(beanClass);
+    <span class="hljs-keyword">if</span> (supplier != <span class="hljs-keyword">null</span>) &#123;
+      beanDefinition.setInstanceSupplier(supplier);
+    &#125;
+    <span class="hljs-keyword">for</span> (BeanDefinitionCustomizer customizer : customizers) &#123;
+      customizer.customize(beanDefinition);
+    &#125;
+
+    String nameToUse = (beanName != <span class="hljs-keyword">null</span> ? beanName : beanClass.getName());
+    registerBeanDefinition(nameToUse, beanDefinition);
+  &#125;
+&#125;</code></pre>
+
+<p><code>GenericApplicationContext</code>内部持有了<code>DefaultListableBeanFactory</code>引用，并简单的实现了<strong>BeanDefinitionRegistry</strong>的接口，不过最终操作还是交给了<code>DefaultListableBeanFactory</code>对象来进行完成。</p>
+<h4 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h4><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testGenericApplicationContext</span><span class="hljs-params">()</span> </span>&#123;
+  GenericApplicationContext applicationContext = <span class="hljs-keyword">new</span> GenericApplicationContext();
+
+  AnnotatedBeanDefinitionReader definitionReader = <span class="hljs-keyword">new</span> AnnotatedBeanDefinitionReader(applicationContext);
+  definitionReader.registerBean(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+
+  applicationContext.refresh();
+
+  IocBean iocBean = applicationContext.getBean(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+  System.out.println(iocBean);
+&#125;</code></pre>
+
+
+
+<h3 id="DefaultListableBeanFactory"><a href="#DefaultListableBeanFactory" class="headerlink" title="DefaultListableBeanFactory"></a><code>DefaultListableBeanFactory</code></h3><h4 id="简介-3"><a href="#简介-3" class="headerlink" title="简介"></a>简介</h4><p>DefaultListableBeanFactory是Spring的ConfigurableListableBeanFactory和BeanDefinitionRegistry接口的默认实现，基于BeanDefinition元数据的成熟bean工厂，可通过后处理器进行扩展。</p>
+<h4 id="使用-1"><a href="#使用-1" class="headerlink" title="使用"></a>使用</h4><p>典型的用法是在访问bean之前先注册所有bean定义（可能是从bean定义文件中读取）。因此，按名称查找Bean是对本地Bean定义表进行的廉价操作，该操作对预先解析的Bean定义元数据对象进行操作。对于<code>ListableBeanFactory</code>接口的替代实现，请看一下<code>StaticListableBeanFactory</code>，它管理现有的bean实例，而不是根据bean定义创建新的bean实例。</p>
+<h4 id="源代码-3"><a href="#源代码-3" class="headerlink" title="源代码"></a>源代码</h4><p>代码中删除了无关的代码，因为我们关注的是<code>BeanDefinitionRegistry</code>相关的操作。</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultListableBeanFactory</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">AbstractAutowireCapableBeanFactory</span></span>
+<span class="hljs-class">  <span class="hljs-keyword">implements</span> <span class="hljs-title">ConfigurableListableBeanFactory</span>, <span class="hljs-title">BeanDefinitionRegistry</span>, <span class="hljs-title">Serializable</span> </span>&#123;
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> allowBeanDefinitionOverriding = <span class="hljs-keyword">true</span>;
+
+  <span class="hljs-comment">// 管理所有的BeanDefinition</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;String, BeanDefinition&gt; beanDefinitionMap = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="hljs-number">256</span>);
+  <span class="hljs-comment">// 管理所有的单例Bean或非单例名称，key=依赖的Class</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, String[]&gt; allBeanNamesByType = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="hljs-number">64</span>);
+  <span class="hljs-comment">// 管理所有的单例Bean名称，key=依赖的Class</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;Class&lt;?&gt;, String[]&gt; singletonBeanNamesByType = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="hljs-number">64</span>);
+  <span class="hljs-comment">// 根据注册的顺序，管理所有的BeanDefinition名称</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> List&lt;String&gt; beanDefinitionNames = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(<span class="hljs-number">256</span>);
+  <span class="hljs-comment">// 管理手动注册的单示例Bean</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">volatile</span> Set&lt;String&gt; manualSingletonNames = <span class="hljs-keyword">new</span> LinkedHashSet&lt;&gt;(<span class="hljs-number">16</span>);
+
+	<span class="hljs-comment">// 构造函数</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">DefaultListableBeanFactory</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">super</span>();
+  &#125;
+
+	<span class="hljs-comment">// 注册BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">registerBeanDefinition</span><span class="hljs-params">(String beanName, BeanDefinition beanDefinition)</span></span>
+<span class="hljs-function">    <span class="hljs-keyword">throws</span> BeanDefinitionStoreException </span>&#123;
+		
+		<span class="hljs-comment">// 判断次BeanDefinition是否被加载过</span>
+    BeanDefinition existingDefinition = <span class="hljs-keyword">this</span>.beanDefinitionMap.get(beanName);
+    <span class="hljs-keyword">if</span> (existingDefinition != <span class="hljs-keyword">null</span>) &#123; 		<span class="hljs-comment">// 被加载过</span>
+      <span class="hljs-comment">// 是否允许BeanDefinition重写</span>
+      <span class="hljs-keyword">if</span> (!isAllowBeanDefinitionOverriding()) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BeanDefinitionOverrideException(beanName, beanDefinition, existingDefinition);
+      &#125;
+      <span class="hljs-comment">// 新的BeanDefinition会覆盖就的BeanDefinition</span>
+      <span class="hljs-keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);
+    &#125;
+    <span class="hljs-comment">// 未被加载过</span>
+    <span class="hljs-keyword">else</span> &#123;	
+      <span class="hljs-keyword">if</span> (hasBeanCreationStarted()) &#123;		<span class="hljs-comment">// 是否已经开始创建Bean</span>
+        <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>.beanDefinitionMap) &#123;
+          <span class="hljs-comment">// 将BeanDefinition放入到beanDefinitionMap中</span>
+          <span class="hljs-keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);
+          List&lt;String&gt; updatedDefinitions = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(<span class="hljs-keyword">this</span>.beanDefinitionNames.size() + <span class="hljs-number">1</span>);
+          updatedDefinitions.addAll(<span class="hljs-keyword">this</span>.beanDefinitionNames);
+          updatedDefinitions.add(beanName);
+          <span class="hljs-keyword">this</span>.beanDefinitionNames = updatedDefinitions;
+          removeManualSingletonName(beanName);
+        &#125;
+      &#125;
+      <span class="hljs-keyword">else</span> &#123;
+				<span class="hljs-comment">// 将BeanDefinition放入到beanDefinitionMap中</span>
+        <span class="hljs-keyword">this</span>.beanDefinitionMap.put(beanName, beanDefinition);
+        <span class="hljs-keyword">this</span>.beanDefinitionNames.add(beanName);
+        <span class="hljs-comment">// 删除</span>
+        removeManualSingletonName(beanName);
+      &#125;
+      <span class="hljs-keyword">this</span>.frozenBeanDefinitionNames = <span class="hljs-keyword">null</span>;
+    &#125;
+		<span class="hljs-comment">// 已经存在此BeanDefinition或者此beanName已经存在</span>
+    <span class="hljs-keyword">if</span> (existingDefinition != <span class="hljs-keyword">null</span> || containsSingleton(beanName)) &#123;
+      <span class="hljs-comment">// 重置此BeanDefinition</span>
+      resetBeanDefinition(beanName);
+    &#125;
+  &#125;
+
+	<span class="hljs-comment">// 删除BeanDefinition</span>
+  <span class="hljs-comment">// ①：删除beanDefinitionNames中name，②：调用resetBeanDefinition从beanDefinitionMap中删除</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">removeBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException </span>&#123;
+		<span class="hljs-comment">// 从Map中删除BeanDefinition</span>
+    BeanDefinition bd = <span class="hljs-keyword">this</span>.beanDefinitionMap.remove(beanName);
+    <span class="hljs-keyword">if</span> (bd == <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 删除失败（不存在此BeanDefinition），抛出异常</span>
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoSuchBeanDefinitionException(beanName);
+    &#125;
+		<span class="hljs-comment">// 是否有Bean已经被创建</span>
+    <span class="hljs-keyword">if</span> (hasBeanCreationStarted()) &#123;
+      <span class="hljs-comment">// 加锁</span>
+      <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>.beanDefinitionMap) &#123;
+        List&lt;String&gt; updatedDefinitions = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(<span class="hljs-keyword">this</span>.beanDefinitionNames);
+       	<span class="hljs-comment">// 删除</span>
+        updatedDefinitions.remove(beanName);
+        <span class="hljs-keyword">this</span>.beanDefinitionNames = updatedDefinitions;  <span class="hljs-comment">// 重新赋值</span>
+      &#125;
+    &#125;
+    <span class="hljs-keyword">else</span> &#123;
+			<span class="hljs-comment">// 直接删除</span>
+      <span class="hljs-keyword">this</span>.beanDefinitionNames.remove(beanName);
+    &#125;
+		<span class="hljs-comment">// 重置BeanDefinition</span>
+    resetBeanDefinition(beanName);
+  &#125;
+
+	<span class="hljs-comment">// 重置BeanDefinition</span>
+  <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">void</span> <span class="hljs-title">resetBeanDefinition</span><span class="hljs-params">(String beanName)</span> </span>&#123;
+    <span class="hljs-comment">// 如果存在则删除指定Bean名称对应的合并的BeanDefinition</span>
+    clearMergedBeanDefinition(beanName);
+
+    destroySingleton(beanName);
+		<span class="hljs-comment">// 执行过滤出的MergedBeanDefinitionPostProcessor</span>
+    <span class="hljs-keyword">for</span> (BeanPostProcessor processor : getBeanPostProcessors()) &#123;
+      <span class="hljs-keyword">if</span> (processor <span class="hljs-keyword">instanceof</span> MergedBeanDefinitionPostProcessor) &#123;
+        ((MergedBeanDefinitionPostProcessor) processor).resetBeanDefinition(beanName);
+      &#125;
+    &#125;
+		<span class="hljs-comment">// 遍历BeanDefinition名称Map</span>
+    <span class="hljs-keyword">for</span> (String bdName : <span class="hljs-keyword">this</span>.beanDefinitionNames) &#123;
+      <span class="hljs-keyword">if</span> (!beanName.equals(bdName)) &#123;
+        BeanDefinition bd = <span class="hljs-keyword">this</span>.beanDefinitionMap.get(bdName);
+        <span class="hljs-keyword">if</span> (bd != <span class="hljs-keyword">null</span> &amp;&amp; beanName.equals(bd.getParentName())) &#123;
+          <span class="hljs-comment">// 重置BeanDefinition</span>
+          resetBeanDefinition(bdName);
+        &#125;
+      &#125;
+    &#125;
+  &#125;
+
+	<span class="hljs-comment">// 获取BeanDefinition</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> BeanDefinition <span class="hljs-title">getBeanDefinition</span><span class="hljs-params">(String beanName)</span> <span class="hljs-keyword">throws</span> NoSuchBeanDefinitionException </span>&#123;
+    <span class="hljs-comment">// 调用beanDefinitionMap.get()</span>
+		BeanDefinition bd = <span class="hljs-keyword">this</span>.beanDefinitionMap.get(beanName);
+		<span class="hljs-keyword">if</span> (bd == <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 没有抛出异常</span>
+			<span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoSuchBeanDefinitionException(beanName);
+		&#125;
+		<span class="hljs-keyword">return</span> bd;
+	&#125;
+  
+	<span class="hljs-comment">// 是否存在BeanDefinition</span>
+	<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">containsBeanDefinition</span><span class="hljs-params">(String beanName)</span> </span>&#123;
+		Assert.notNull(beanName, <span class="hljs-string">"Bean name must not be null"</span>);
+    <span class="hljs-comment">// 操作成员变量beanDefinitionMap</span>
+		<span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.beanDefinitionMap.containsKey(beanName);
+	&#125;
+&#125;</code></pre>
+
+<p><code>DefaultListableBeanFactory</code>声明了多个<code>beanDefinitionNames（List类型）</code>，<code>beanDefinitionMap（Map类型）</code>等属性，它们分别用于存储<code>BeanDefinition名称</code>和<code>BeanDefinition</code>。</p>
+<p>在对<code>BeanDefinitionRegistry</code>接口方法的实现中底层操作的都是这两个<code>beanDefinitionNames</code>，<code>beanDefinitionMap</code>属性。</p>
+<h4 id="示例代码-1"><a href="#示例代码-1" class="headerlink" title="示例代码"></a>示例代码</h4><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testDefaultListableBeanFactory</span><span class="hljs-params">()</span> </span>&#123;
+
+    DefaultListableBeanFactory beanFactory = <span class="hljs-keyword">new</span> DefaultListableBeanFactory();
+
+    BeanDefinition beanDefinition = <span class="hljs-keyword">new</span> AnnotatedGenericBeanDefinition(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+    beanFactory.registerBeanDefinition(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>.<span class="hljs-title">getName</span>(), <span class="hljs-title">beanDefinition</span>)</span>;
+
+    System.out.println(Arrays.toString(beanFactory.getBeanDefinitionNames()));
+&#125;</code></pre>
+
+
+
+<h3 id="AnnotationConfigApplicationContext"><a href="#AnnotationConfigApplicationContext" class="headerlink" title="AnnotationConfigApplicationContext"></a>AnnotationConfigApplicationContext</h3><h4 id="简介-4"><a href="#简介-4" class="headerlink" title="简介"></a>简介</h4><p><code>AnnotationConfigApplicationContext</code>是一个独立的应用程序上下文，接受组件类作为输入-特别是使用@Configuration注释的类，还可以使用javax.inject注释使用普通的@Component类型和符合JSR-330的类。</p>
+<h4 id="使用-2"><a href="#使用-2" class="headerlink" title="使用"></a>使用</h4><p>允许使用<code>register（Class ...）</code>方法一对一注册类，以及使用<code>scan（String ...）方法</code>进行类路径扫描，这两个方法定义在<code>AnnotationConfigRegistry</code>接口中。</p>
+<p>如果有多个<code>@Configuration</code>类，则在<code>以后的类中定义的@Bean方法将覆盖在先前的类中定义的方法</code>。可以利用此属性通过额外的@Configuration类有意覆盖某些bean定义。</p>
+<h4 id="源代码-4"><a href="#源代码-4" class="headerlink" title="源代码"></a>源代码</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AnnotationConfigApplicationContext</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">GenericApplicationContext</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">AnnotationConfigRegistry</span> </span>&#123;
+	<span class="hljs-comment">// 注解BeanDefinition的读取器和注册器</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> AnnotatedBeanDefinitionReader reader;
+	<span class="hljs-comment">// ClassPath下BeanDefinition扫描器，扫描Component，Service，Controller，Repository等注解标识的类 </span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ClassPathBeanDefinitionScanner scanner;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">AnnotationConfigApplicationContext</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.reader = <span class="hljs-keyword">new</span> AnnotatedBeanDefinitionReader(<span class="hljs-keyword">this</span>);
+    <span class="hljs-keyword">this</span>.scanner = <span class="hljs-keyword">new</span> ClassPathBeanDefinitionScanner(<span class="hljs-keyword">this</span>);
+  &#125;
+	<span class="hljs-comment">// 使用指定类的Class数组进行初始化</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">AnnotationConfigApplicationContext</span><span class="hljs-params">(Class&lt;?&gt;... componentClasses)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>();
+    register(componentClasses);
+    refresh();
+  &#125;
+  <span class="hljs-comment">// 使用指定包路径数组进行初始化</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">AnnotationConfigApplicationContext</span><span class="hljs-params">(String... basePackages)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>();
+    scan(basePackages);
+    refresh();
+  &#125;
+
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">register</span><span class="hljs-params">(Class&lt;?&gt;... componentClasses)</span> </span>&#123;
+    Assert.notEmpty(componentClasses, <span class="hljs-string">"At least one component class must be specified"</span>);
+    <span class="hljs-comment">// 调用AnnotatedBeanDefinitionReader注册Bean</span>
+    <span class="hljs-keyword">this</span>.reader.register(componentClasses);
+  &#125;
+
+  <span class="hljs-meta">@Override</span>
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">scan</span><span class="hljs-params">(String... basePackages)</span> </span>&#123;
+    Assert.notEmpty(basePackages, <span class="hljs-string">"At least one base package must be specified"</span>);
+    <span class="hljs-keyword">this</span>.scanner.scan(basePackages);
+  &#125;
+
+	<span class="hljs-comment">// 重写父类的registerBean方法，因为reader拥有注册Bean的功能</span>
+  <span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">registerBean</span><span class="hljs-params">(@Nullable String beanName, Class&lt;T&gt; beanClass,</span></span>
+<span class="hljs-function"><span class="hljs-params">                               @Nullable Supplier&lt;T&gt; supplier, BeanDefinitionCustomizer... customizers)</span> </span>&#123;
+
+    <span class="hljs-keyword">this</span>.reader.registerBean(beanClass, beanName, supplier, customizers);
+  &#125;
+&#125;</code></pre>
+
+<p>AnnotationConfigApplicationContext引用了<code>ClassPathBeanDefinitionScanner</code>，<code>AnnotatedBeanDefinitionReader</code>属性。</p>
+<p>并将最终的Bean注册交予了<code>AnnotatedBeanDefinitionReader</code>来处理，而<code>ClassPathBeanDefinitionScanner</code>则用于扫描类路径下所有带<code>Component，Service，Controller，Repository</code>注解的类。</p>
+<h4 id="示例代码-2"><a href="#示例代码-2" class="headerlink" title="示例代码"></a>示例代码</h4><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testAnnotationConfigApplicationContext</span><span class="hljs-params">()</span> </span>&#123;
+  AnnotationConfigApplicationContext applicationContext = 
+    																								<span class="hljs-keyword">new</span> AnnotationConfigApplicationContext(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+
+  IocBean bean = applicationContext.getBean(IocBean<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+  System.out.println(bean);
+&#125;</code></pre>
+
+<p>可以看出AnnotationConfigApplicationContext的使用非常的简单，只需简单传递一个要初始化的Bean的Class即可。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><code>GenericApplicationContext</code>：对BeanDefinitionRegistry做了通用的实现，内部引用了DefaultListableBeanFactory，将操作转发给了DefaultListableBeanFactory。</p>
+<p><code>DefaultListableBeanFactory</code>：该类封装了处理BeanDefinition的逻辑，底层操作了许多Map。</p>
+<p><code>AnnotationConfigApplicationContext</code>：该类虽然继承了<code>GenericApplicationContext</code>类，但却每调用父类的方法，而是将注册Bean的操作转发给了内部的AnnotatedBeanDefinitionReader对象。</p>
+<p><code>SimpleBeanDefinitionRegistry</code>：简单的BeanDefinitionRegistry，未内置工厂，可用作测试BeanDefinition 注册。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Spring/">Spring</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Spring/">Spring</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Ioc/">Ioc</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/10/09/spring-bean-definition-reader/index/">
+                        <span class="hidden-mobile">Ioc-Spring-BeanDefinition读取</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    function loadValine() {
+      addScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "aK6NK3wQgpzFrKt1b2gLWClF-gzGzoHsz",
+          app_key: "dyu33pNKDg5FqSn8boyV27jO",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "identicon",
+          meta: ["nick","mail","link"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    }
+    waitElementVisible('vcomments', loadValine);
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://valine.js.org" target="_blank" rel="nofollow noopener noopener">comments
+      powered by Valine.</a></noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://doc.io-better.cn" target="_blank" rel="nofollow noopener">
+        <span>IO.BETTER</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Ioc-Spring-BeanDefinition注册&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
