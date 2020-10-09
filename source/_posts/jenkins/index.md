@@ -7,6 +7,7 @@ tags:
   - Jenkins
   - Pipeline
 abbrlink: 27713
+date: 2020-10-09 09:28:07
 ---
 
 该文章主要Jenkins Pipeline的使用

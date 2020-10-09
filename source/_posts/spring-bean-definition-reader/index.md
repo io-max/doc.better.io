@@ -7,7 +7,7 @@ tags:
 categories: Spring
 index_img: 'https://better-io-blog.oss-cn-beijing.aliyuncs.com/20201009092147.png'
 abbrlink: 19914
-date: 2020-10-09 09:35:35
+date: 2020-06-09 09:35:35
 ---
 
 # Ioc-BeanDefinition的读取与注册
