@@ -7,7 +7,7 @@ tags:
 categories: Spring
 index_img: img/spring-logo-480.png
 abbrlink: 19914
-date: 2020-06-09 09:35:35
+date: 2020-03-09 09:35:35
 ---
 
 # Ioc-BeanDefinition的读取与注册

@@ -5,7 +5,7 @@ categories: Proxy
 # index_img: /img/01/06.png
 index_img: img/java-logo-480.png
 abbrlink: 22654
-date: 2020-05-06 16:34:51
+date: 2020-04-06 16:34:51
 ---
 
 该文章主要讲述代模式以及其实现方式，主要是 `静态代理` , `动态代理`, `Cglib代理`.
