@@ -1,5 +1,5 @@
 ---
-title: Mybaits-启动加载
+title: Mybaits 启动加载
 tags:
   - Java
   - Orm
