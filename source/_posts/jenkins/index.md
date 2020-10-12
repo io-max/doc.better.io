@@ -1,7 +1,7 @@
 ---
 title: Jenkins Pipeline
 categories: CI
-index_img: 'https://img.icons8.com/color/480/000000/jenkins.png'
+index_img: img/jenkins-logo-480.png
 tags:
   - CI
   - Jenkins

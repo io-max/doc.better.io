@@ -5,7 +5,7 @@ tags:
   - Spring
   - Ioc
 categories: Spring
-index_img: https://better-io-blog.oss-cn-beijing.aliyuncs.com/20201009092147.png
+index_img: img/spring-logo-480.png
 abbrlink: 29662
 date: 2020-10-09 09:28:07
 ---

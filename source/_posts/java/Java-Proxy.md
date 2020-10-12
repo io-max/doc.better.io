@@ -3,7 +3,7 @@ title: Proxy-代理
 tags: [Java, Proxy]
 categories: Proxy
 # index_img: /img/01/06.png
-index_img: https://img.icons8.com/color/480/000000/java-coffee-cup-logo.png
+index_img: img/java-logo-480.png
 abbrlink: 22654
 date: 2020-05-06 16:34:51
 ---

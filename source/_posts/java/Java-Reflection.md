@@ -2,7 +2,7 @@
 title: Reflection-反射
 tags: [Reflection, Java]
 categories: Reflection
-index_img: https://img.icons8.com/color/480/000000/java-coffee-cup-logo.png
+index_img: img/java-logo-480.png
 abbrlink: 53429
 date: 2020-05-06 16:34:51
 ---
