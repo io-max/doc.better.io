@@ -1,0 +1,980 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" type="image/png" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IO.BETTER的博客">
+  <meta name="author" content="Better.Chen">
+  <meta name="keywords" content="">
+  <title>Mybatis-执行 - IO.BETTER的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+    
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>IO.BETTER</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/back.webp') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-12-09 09:28" pubdate>
+        2019年12月9日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      45
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Mybatis-执行</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <h1 id="Mybatis-语句执行"><a href="#Mybatis-语句执行" class="headerlink" title="Mybatis-语句执行"></a>Mybatis-语句执行</h1><h2 id="本章讲述的内容"><a href="#本章讲述的内容" class="headerlink" title="本章讲述的内容"></a>本章讲述的内容</h2><p>本章主要讲解Mybatis在启动后是如何执行Mapper文件中对应SQL语句的。带着下面几个问题我们正式进入Mybatis语句执行分析。</p>
+<blockquote>
+<p>1、Mybatis是如何实现一级缓存的？</p>
+<p>2、Mybatis是如何执行SQL的？有几种执行器？</p>
+<p>3、Mybatis是如何处理查询结果的？</p>
+</blockquote>
+<p>想知道如何使用Mybatis请参考<a href="https://mybatis.org/mybatis-3/zh/" target="_blank" rel="noopener">Mybatis官方文档</a>。</p>
+<h2 id="相关配置"><a href="#相关配置" class="headerlink" title="相关配置"></a>相关配置</h2><h3 id="配置XML"><a href="#配置XML" class="headerlink" title="配置XML"></a>配置XML</h3><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">mapper</span> <span class="hljs-attr">namespace</span>=<span class="hljs-string">"io.better.mybatis.mapper.UserMapper"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">resultMap</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"BaseResultMap"</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"io.better.mybatis.model.User"</span>&gt;</span>
+        <span class="hljs-comment">&lt;!--@mbg.generated--&gt;</span>
+        <span class="hljs-comment">&lt;!--@Table tbl_user--&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">id</span> <span class="hljs-attr">column</span>=<span class="hljs-string">"id"</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">"BIGINT"</span> <span class="hljs-attr">property</span>=<span class="hljs-string">"id"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">"username"</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">"VARCHAR"</span> <span class="hljs-attr">property</span>=<span class="hljs-string">"username"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">"phone"</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">"VARCHAR"</span> <span class="hljs-attr">property</span>=<span class="hljs-string">"phone"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">column</span>=<span class="hljs-string">"address"</span> <span class="hljs-attr">jdbcType</span>=<span class="hljs-string">"VARCHAR"</span> <span class="hljs-attr">property</span>=<span class="hljs-string">"address"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">resultMap</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">sql</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"Name_Column"</span>&gt;</span>
+            username
+    <span class="hljs-tag">&lt;/<span class="hljs-name">sql</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">sql</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"Base_Column_List"</span>&gt;</span>
+        <span class="hljs-comment">&lt;!--@mbg.generated--&gt;</span>
+        id,
+        <span class="hljs-tag">&lt;<span class="hljs-name">include</span> <span class="hljs-attr">refid</span>=<span class="hljs-string">"Name_Column"</span>/&gt;</span>,
+        phone,
+        address
+    <span class="hljs-tag">&lt;/<span class="hljs-name">sql</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">select</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"selectByPrimaryKey"</span> <span class="hljs-attr">parameterType</span>=<span class="hljs-string">"java.lang.Long"</span> <span class="hljs-attr">resultMap</span>=<span class="hljs-string">"BaseResultMap"</span>&gt;</span>
+        <span class="hljs-comment">&lt;!--@mbg.generated--&gt;</span>
+        select
+        <span class="hljs-tag">&lt;<span class="hljs-name">include</span> <span class="hljs-attr">refid</span>=<span class="hljs-string">"Base_Column_List"</span>/&gt;</span>
+        from tbl_user
+        where id = #&#123;id,jdbcType=BIGINT&#125;
+    <span class="hljs-tag">&lt;/<span class="hljs-name">select</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">mapper</span>&gt;</span></code></pre>
+
+<h3 id="全局配置XML"><a href="#全局配置XML" class="headerlink" title="全局配置XML"></a>全局配置XML</h3><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">configuration</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">properties</span> <span class="hljs-attr">resource</span>=<span class="hljs-string">"jdbc.properties"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">settings</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"logImpl"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"SLF4J"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"useGeneratedKeys"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"true"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"defaultExecutorType"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"BATCH"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">settings</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">typeAliases</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">package</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"io.better.mybatis.model"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">typeAliases</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">environments</span> <span class="hljs-attr">default</span>=<span class="hljs-string">"development"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">environment</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"development"</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">transactionManager</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"JDBC"</span>/&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">dataSource</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"POOLED"</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"driver"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"com.mysql.cj.jdbc.Driver"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"url"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"jdbc:mysql://localhost:3306/source-code-analysis"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"username"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"root"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"123456"</span>/&gt;</span>
+            <span class="hljs-tag">&lt;/<span class="hljs-name">dataSource</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">environment</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">environments</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">mappers</span>&gt;</span>
+        <span class="hljs-comment">&lt;!--&lt;package name="io.better.mybatis.mapper"/&gt;--&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">mapper</span> <span class="hljs-attr">resource</span>=<span class="hljs-string">"mybatis/mappers/UserMapper.xml"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">mappers</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">configuration</span>&gt;</span></code></pre>
+
+
+
+<h2 id="入口"><a href="#入口" class="headerlink" title="入口"></a>入口</h2><h3 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h3><pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment"> * <span class="hljs-doctag">@author</span> better create in 2020/4/19 10:30 上午</span>
+<span class="hljs-comment"> */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MybatisTest</span> </span>&#123;
+
+    SqlSessionFactory sqlSessionFactory;
+
+    <span class="hljs-meta">@Before</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">before</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;
+        String resource = <span class="hljs-string">"mybatis/mybatis-config.xml"</span>;
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        sqlSessionFactory = <span class="hljs-keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);
+    &#125;
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testList</span><span class="hljs-params">()</span> </span>&#123;
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        UserMapper mapper = sqlSession.getMapper(UserMapper<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+        User user = mapper.selectByPrimaryKey(<span class="hljs-number">1L</span>);
+        System.out.println(user);
+    &#125;
+&#125;</code></pre>
+
+<p>从代码可以看出一共执行了三个操作：</p>
+<p>1、调用<code>SqlSessionFactory</code>创建<code>SqlSession</code>对象。</p>
+<p>2、调用SqlSession获取Mapper代理对象。</p>
+<p>3、调用Mapper代理对象执行目标方法获取结果。</p>
+<h2 id="获取SqlSession"><a href="#获取SqlSession" class="headerlink" title="获取SqlSession"></a>获取SqlSession</h2><h3 id="调用openSession-创建SqlSession"><a href="#调用openSession-创建SqlSession" class="headerlink" title="调用openSession()创建SqlSession"></a>调用<code>openSession()</code>创建SqlSession</h3><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSession <span class="hljs-title">openSession</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-keyword">return</span> openSessionFromDataSource(configuration.getDefaultExecutorType(), <span class="hljs-keyword">null</span>, <span class="hljs-keyword">false</span>);
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">private</span> SqlSession <span class="hljs-title">openSessionFromDataSource</span><span class="hljs-params">(ExecutorType execType, TransactionIsolationLevel level, <span class="hljs-keyword">boolean</span> autoCommit)</span> </span>&#123;
+  Transaction tx = <span class="hljs-keyword">null</span>;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 获取环境配置</span>
+    <span class="hljs-keyword">final</span> Environment environment = configuration.getEnvironment();
+    <span class="hljs-comment">// 步骤①</span>
+    <span class="hljs-keyword">final</span> TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+    <span class="hljs-comment">// 步骤②</span>
+    tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+    <span class="hljs-comment">// 步骤③</span>
+    <span class="hljs-keyword">final</span> Executor executor = configuration.newExecutor(tx, execType);
+    <span class="hljs-comment">// 步骤④</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultSqlSession(configuration, executor, autoCommit);
+  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+    <span class="hljs-comment">// 忽略部分代码</span>
+  &#125;
+&#125;</code></pre>
+
+<p>上诉代码中我们需要重点关注一个点：1、<code>configuration.getDefaultExecutorType()：</code>它用于指定Executor的类型，默认即<code>ExecutorType.SIMPLE</code>。</p>
+<p>在<code>openSessionFromDataSource</code>方法中，Mybatis做了下面几个操作：</p>
+<ul>
+<li>步骤①：创建TransactionFactory，类型为：<code>JdbcTransactionFactory</code>。<ul>
+<li>对应Mybatis配置中 <transactionManager type="JDBC"/>标签。</li>
+</ul>
+</li>
+<li>步骤②：创建Transaction事务对象，并对<code>autoCommit，IsolationLevel</code> 属性赋值。</li>
+<li>步骤③：根据<code>execType</code>创建执行类型的<code>Executor</code>执行器。</li>
+<li>步骤④：创建<code>DefaultSqlSession</code>对象。</li>
+</ul>
+<h4 id="创建Transaction"><a href="#创建Transaction" class="headerlink" title="创建Transaction"></a>创建<code>Transaction</code></h4><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Transaction <span class="hljs-title">newTransaction</span><span class="hljs-params">(DataSource ds, TransactionIsolationLevel level, <span class="hljs-keyword">boolean</span> autoCommit)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> JdbcTransaction(ds, level, autoCommit);
+&#125;</code></pre>
+
+<p>代码中直接调用<code>JdbcTransaction</code>构造器进行Transaction创建。那么JdbcTransaction将就能干什么事情呢？让我们来看看JdbcTransaction的类结构图。</p>
+<p><img src="https://raw.githubusercontent.com/io-better-chen/better.io.images/master/images/image-20200428162608413.png" srcset="/img/loading.gif" alt="image-20200428162608413"></p>
+<p>从类图可以看出JdbcTransaction主要是负责<code>提交、回滚、关闭Transaction</code>，<code>打开、获取Connection</code>等操作。</p>
+<h4 id="创建Executor"><a href="#创建Executor" class="headerlink" title="创建Executor"></a>创建<code>Executor</code></h4><p><code>Configuration#newExecutor(Transaction, ExecutorType)</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Executor <span class="hljs-title">newExecutor</span><span class="hljs-params">(Transaction transaction, ExecutorType executorType)</span> </span>&#123;
+  <span class="hljs-comment">// 判断 executorType </span>
+  executorType = executorType == <span class="hljs-keyword">null</span> ? defaultExecutorType : executorType;
+  executorType = executorType == <span class="hljs-keyword">null</span> ? ExecutorType.SIMPLE : executorType;
+  Executor executor;
+  <span class="hljs-keyword">if</span> (ExecutorType.BATCH == executorType) &#123;
+    <span class="hljs-comment">// 批量执行器</span>
+    executor = <span class="hljs-keyword">new</span> BatchExecutor(<span class="hljs-keyword">this</span>, transaction);
+  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ExecutorType.REUSE == executorType) &#123;
+    <span class="hljs-comment">// 可重用执行器</span>
+    executor = <span class="hljs-keyword">new</span> ReuseExecutor(<span class="hljs-keyword">this</span>, transaction);
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// 默认执行器</span>
+    executor = <span class="hljs-keyword">new</span> SimpleExecutor(<span class="hljs-keyword">this</span>, transaction);
+  &#125;
+  <span class="hljs-keyword">if</span> (cacheEnabled) &#123;
+    <span class="hljs-comment">// 缓存执行器，类似于一个装饰器</span>
+    executor = <span class="hljs-keyword">new</span> CachingExecutor(executor);
+  &#125;
+  <span class="hljs-comment">// 将执行器传递给每个插件拦截器</span>
+  executor = (Executor) interceptorChain.pluginAll(executor);
+  <span class="hljs-keyword">return</span> executor;
+&#125;</code></pre>
+
+<p>代码中可以看出，执行器的类型一共有三种：<code>批量-&gt;BatchExecutor，可重用-&gt;ReuseExecutor，简单-&gt;SimpleExecutor</code>。</p>
+<p>而<code>CachingExecutor</code>是一个装饰类，包装了具体的Executor，主要用于做一些缓存操作。</p>
+<p>默认为<code>SimpleExecutor</code>执行器，我们这里使用是<code>BatchExecutor</code>执行器。可以通过下面的配置修改：</p>
+<pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"defaultExecutorType"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"BATCH"</span>/&gt;</span></code></pre>
+
+<p>最后将创建好的执行器交给<code>interceptorChain</code>，此处代码是为了扩展。</p>
+<p>因为代码最终会走向<code>Plugin.wrap</code>方法中，并为其创建 <code>Plugin</code>这个代理对象（<code>如果有拦截器处理则创建，没有则无</code>）。</p>
+<p><img src="https://raw.githubusercontent.com/io-better-chen/better.io.images/master/images/20200429161400.png" srcset="/img/loading.gif" alt="image-20200429161316723"></p>
+<h4 id="创建DefaultSqlSession"><a href="#创建DefaultSqlSession" class="headerlink" title="创建DefaultSqlSession"></a>创建<code>DefaultSqlSession</code></h4><p>源代码：</p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">DefaultSqlSession</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">SqlSession</span> </span>&#123;
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Configuration configuration;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Executor executor;
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> autoCommit;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> dirty;
+  <span class="hljs-keyword">private</span> List&lt;Cursor&lt;?&gt;&gt; cursorList;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">DefaultSqlSession</span><span class="hljs-params">(Configuration configuration, Executor executor, <span class="hljs-keyword">boolean</span> autoCommit)</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.configuration = configuration;
+    <span class="hljs-keyword">this</span>.executor = executor;
+    <span class="hljs-keyword">this</span>.dirty = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">this</span>.autoCommit = autoCommit;
+  &#125;
+&#125;</code></pre>
+
+<p>DefaultSqlSession的构造比较简单，仅仅是对类中部分属性进行赋值。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>在获取SqlSession阶段主要是初始化了<code>Transaction，Executor，SqlSession</code>三个对象。</p>
+<h2 id="获取指定Mapper"><a href="#获取指定Mapper" class="headerlink" title="获取指定Mapper"></a>获取指定Mapper</h2><h3 id="调用getMapper-获取Mapper"><a href="#调用getMapper-获取Mapper" class="headerlink" title="调用getMapper()获取Mapper"></a>调用<code>getMapper()</code>获取Mapper</h3><pre><code class="hljs java"><span class="hljs-comment">// DefaultSqlSession.getMapper</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> configuration.getMapper(type, <span class="hljs-keyword">this</span>);
+&#125;
+<span class="hljs-comment">// Configuration.getMapper</span>
+<span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> mapperRegistry.getMapper(type, sqlSession);
+&#125;</code></pre>
+
+<p>代码最终调用到了Configuration对象中。</p>
+<p>因为Mybatis在启动加载阶段将所有的Mapper接口都注册到了<code>Configuration.mapperRegistry</code>对象中。</p>
+<h3 id="创建MapperProxy"><a href="#创建MapperProxy" class="headerlink" title="创建MapperProxy"></a>创建MapperProxy</h3><pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">getMapper</span><span class="hljs-params">(Class&lt;T&gt; type, SqlSession sqlSession)</span> </span>&#123;
+  <span class="hljs-comment">// 获取到MapperProxy工厂</span>
+  <span class="hljs-keyword">final</span> MapperProxyFactory&lt;T&gt; mapperProxyFactory = (MapperProxyFactory&lt;T&gt;) knownMappers.get(type);
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 创建MapperProxy对象</span>
+    <span class="hljs-keyword">return</span> mapperProxyFactory.newInstance(sqlSession);
+  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+  &#125;
+&#125;
+<span class="hljs-comment">// MapperProxyFactory</span>
+<span class="hljs-function"><span class="hljs-keyword">public</span> T <span class="hljs-title">newInstance</span><span class="hljs-params">(SqlSession sqlSession)</span> </span>&#123;
+  <span class="hljs-comment">// 创建MapperProxy对象</span>
+  <span class="hljs-keyword">final</span> MapperProxy&lt;T&gt; mapperProxy = <span class="hljs-keyword">new</span> MapperProxy&lt;&gt;(sqlSession, mapperInterface, methodCache);
+  <span class="hljs-comment">// 调用JDK的Proxy.newProxyInstance() 创建实例</span>
+  <span class="hljs-keyword">return</span> newInstance(mapperProxy);
+&#125;</code></pre>
+
+<p>从代码可以看出Mybatis在获取每一个Mapper接口时都为其创建了一个MapperProxy代理对象。最终调用JDK创建代理。</p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p><strong><code>在获取Mapper接口阶段主要是操作是：为指定Mapper接口创建代理对象MapperProxy</code></strong>。</p>
+<h2 id="执行SQL"><a href="#执行SQL" class="headerlink" title="执行SQL"></a>执行SQL</h2><h3 id="调用MapperProxy-invoke"><a href="#调用MapperProxy-invoke" class="headerlink" title="调用MapperProxy.invoke"></a>调用<code>MapperProxy.invoke</code></h3><p>当调用SqlSession返回Mapper接口中的方法时，会调用到MapperProxy对象的<code>invoke</code>方法。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
+  <span class="hljs-keyword">if</span> (Object<span class="hljs-class">.<span class="hljs-keyword">class</span>.<span class="hljs-title">equals</span>(<span class="hljs-title">method</span>.<span class="hljs-title">getDeclaringClass</span>())) </span>&#123;
+    <span class="hljs-keyword">return</span> method.invoke(<span class="hljs-keyword">this</span>, args);
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// cachedInvoker会生成MapperMethodInvoker对象，并将其缓存</span>
+    <span class="hljs-comment">// 调用invoke执行方法</span>
+    <span class="hljs-keyword">return</span> cachedInvoker(method).invoke(proxy, method, args, sqlSession);
+  &#125;
+&#125;
+
+<span class="hljs-comment">// cachedInvoker方法</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> MapperMethodInvoker <span class="hljs-title">cachedInvoker</span><span class="hljs-params">(Method method)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
+  <span class="hljs-comment">// 被调用过的方法会被缓存起来，避免重复创建</span>
+  <span class="hljs-keyword">return</span> methodCache.computeIfAbsent(method, m -&gt; &#123;
+    <span class="hljs-keyword">if</span> (m.isDefault()) &#123;
+      <span class="hljs-keyword">if</span> (privateLookupInMethod == <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultMethodInvoker(getMethodHandleJava8(method));
+      &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultMethodInvoker(getMethodHandleJava9(method));
+      &#125;
+    &#125; <span class="hljs-keyword">else</span> &#123;
+      <span class="hljs-comment">// 默认第一次都会创建PlainMethodInvoker。</span>
+      <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> PlainMethodInvoker(<span class="hljs-keyword">new</span> MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
+    &#125;
+  &#125;);
+&#125;</code></pre>
+
+<p>Mybatis会先调用<code>cachedInvoker</code>方法，判断当前执行的方法是否已经创建过<code>MethodInvoker</code>：</p>
+<p>1、如果没有则创建<code>MapperMethod</code>封装当前执行的方法：</p>
+<p>​    1、如果执行的方法不是Default方法，则创建<code>PlainMethodInvoker</code> 并赋值。</p>
+<p>​    2、如果执行的是Default方法，则创建<code>DefaultMethodInvoker</code>并赋值。</p>
+<p>2、如果已经创建，则直接从<code>methodCache</code>中获取。</p>
+<h3 id="调用MapperMethodInvoker-invoke"><a href="#调用MapperMethodInvoker-invoke" class="headerlink" title="调用MapperMethodInvoker.invoke"></a>调用<code>MapperMethodInvoker.invoke</code></h3><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args, SqlSession sqlSession)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
+  <span class="hljs-comment">// 调用上面cachedInvoker方法创建的MapperMethod对象，执行SQL</span>
+  <span class="hljs-keyword">return</span> mapperMethod.execute(sqlSession, args);
+&#125;</code></pre>
+
+<p>调用上一步创建的<code>MapperMethod</code>对象执行目标Mapper方法。</p>
+<h3 id="调用MapperMethod-execute"><a href="#调用MapperMethod-execute" class="headerlink" title="调用MapperMethod.execute"></a>调用<code>MapperMethod.execute</code></h3><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">execute</span><span class="hljs-params">(SqlSession sqlSession, Object[] args)</span> </span>&#123;
+  Object result;
+  <span class="hljs-comment">// 判断sql指令类型：insert，select，update，delete</span>
+  <span class="hljs-keyword">switch</span> (command.getType()) &#123;
+    Object param = method.convertArgsToSqlCommandParam(args);
+    <span class="hljs-comment">// 插入指令</span>
+    <span class="hljs-keyword">case</span> INSERT: &#123;
+      result = rowCountResult(sqlSession.insert(command.getName(), param));
+      <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-comment">// 更新指令</span>
+    <span class="hljs-keyword">case</span> UPDATE: &#123;
+      result = rowCountResult(sqlSession.update(command.getName(), param));
+      <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-comment">// 删除指令</span>
+    <span class="hljs-keyword">case</span> DELETE: &#123;
+      result = rowCountResult(sqlSession.delete(command.getName(), param));
+      <span class="hljs-keyword">break</span>;
+    &#125;
+    <span class="hljs-comment">// 查询指令</span>
+    <span class="hljs-keyword">case</span> SELECT:
+      <span class="hljs-comment">// </span>
+      <span class="hljs-keyword">if</span> (method.returnsVoid() &amp;&amp; method.hasResultHandler()) &#123;
+        executeWithResultHandler(sqlSession, args);
+        result = <span class="hljs-keyword">null</span>;
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (method.returnsMany()) &#123;
+				<span class="hljs-comment">// List结果集</span>
+        result = executeForMany(sqlSession, args);
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (method.returnsMap()) &#123;
+        <span class="hljs-comment">// Map结果集</span>
+        result = executeForMap(sqlSession, args);
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (method.returnsCursor()) &#123;
+        <span class="hljs-comment">// Cursor结果集</span>
+        result = executeForCursor(sqlSession, args);
+      &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// 单个结果集</span>
+        result = sqlSession.selectOne(command.getName(), param);		<span class="hljs-comment">// 忽略部分代码</span>
+      &#125;
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">case</span> FLUSH:
+      result = sqlSession.flushStatements();
+      <span class="hljs-keyword">break</span>;
+    <span class="hljs-keyword">default</span>:
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BindingException(<span class="hljs-string">"Unknown execution method for: "</span> + command.getName());
+  &#125;<span class="hljs-comment">// 忽略部分代码</span>
+  <span class="hljs-keyword">return</span> result;
+&#125;</code></pre>
+
+<p>我们可以看出<code>MapperMethod</code>类是执行Mapper方法的核心类。</p>
+<p>在这个方法中我们分别看到了Mybatis对新增，更新，删除，查询所执行的操作。</p>
+<p>通过判断<code>command</code>指令类型来断定SQL语句的类型。改对象(<code>command</code>)是在MapperMethod构造器中被初始化。</p>
+<p><code>新增，更新，删除，查询</code>四个操作最终都调用了<code>sqlSession</code>中对应的方法。</p>
+<p>而<code>executeForMany，executeForMap，executeForCursor</code>三个方法最终分别调用了<code>SqlSession</code>的<code>selectList，selectMap，selectCursor</code>方法。</p>
+<p><strong><code>可以看出Mybatis的SQL执行最终是在SqlSession中完成的</code></strong>。</p>
+<h3 id="SqlSession"><a href="#SqlSession" class="headerlink" title="SqlSession"></a>SqlSession</h3><h4 id="获取单个结果-selectList"><a href="#获取单个结果-selectList" class="headerlink" title="获取单个结果-selectList"></a>获取单个结果-<code>selectList</code></h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function">T <span class="hljs-title">selectOne</span><span class="hljs-params">(String statement, Object parameter)</span> </span>&#123;
+	<span class="hljs-comment">// 调用同类的selectList方法</span>
+  List&lt;T&gt; list = <span class="hljs-keyword">this</span>.selectList(statement, parameter);
+  <span class="hljs-keyword">if</span> (list.size() == <span class="hljs-number">1</span>) &#123;			<span class="hljs-comment">// 返回第一个</span>
+    <span class="hljs-keyword">return</span> list.get(<span class="hljs-number">0</span>);
+  &#125;
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (list.size() &gt; <span class="hljs-number">1</span>) &#123; <span class="hljs-comment">// 抛出异常</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TooManyResultsException();
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">null</span>;
+  &#125;
+&#125;
+
+<span class="hljs-keyword">public</span> &lt;E&gt; <span class="hljs-function">List&lt;E&gt; <span class="hljs-title">selectList</span><span class="hljs-params">(String statement, Object parameter, RowBounds rowBounds)</span> </span>&#123;
+  <span class="hljs-keyword">try</span> &#123;
+    MappedStatement ms = configuration.getMappedStatement(statement);
+    <span class="hljs-comment">// 调用执行器执行查询</span>
+    <span class="hljs-keyword">return</span> executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
+  &#125; <span class="hljs-keyword">finally</span> &#123;
+  &#125;
+&#125;</code></pre>
+
+<p>在<code>selectOne</code>方法中调用了<code>selectList</code>方法。并对结果集进行了判断，超过一个抛出异常。</p>
+<p>在<code>selectList</code>方法中<code>Mybatis</code>获取到了解析<code>Mapper</code>文件时生成的<code>MappedStatement</code>对象。并将其传递给了<code>Executor</code>。</p>
+<p><strong>而上面的<code>executeForMany，executeForMap，executeForCursor</code>三个方法查询时最终都调用的是<code>selectList</code>方法</strong>。</p>
+<h4 id="执行查询-Executor"><a href="#执行查询-Executor" class="headerlink" title="执行查询-Executor"></a>执行查询-<code>Executor</code></h4><p><code>CachingExecutor.query</code></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;E&gt; <span class="hljs-function">List&lt;E&gt; <span class="hljs-title">query</span><span class="hljs-params">(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler)</span> <span class="hljs-keyword">throws</span> SQLException </span>&#123;
+  BoundSql boundSql = ms.getBoundSql(parameterObject);
+  <span class="hljs-comment">// 调用包装的执行器创建缓存Key</span>
+  CacheKey key = createCacheKey(ms, parameterObject, rowBounds, boundSql);
+  <span class="hljs-comment">// 继续调用同类Query方法</span>
+  <span class="hljs-keyword">return</span> query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+&#125;</code></pre>
+
+<p><code>CachingExecutor.query</code></p>
+<pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;E&gt; <span class="hljs-function">List&lt;E&gt; <span class="hljs-title">query</span><span class="hljs-params">(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)</span></span>
+<span class="hljs-function">  <span class="hljs-keyword">throws</span> SQLException </span>&#123;
+  <span class="hljs-comment">// 获取缓存</span>
+  Cache cache = ms.getCache();
+  <span class="hljs-comment">// 默认第一次为空</span>
+  <span class="hljs-keyword">if</span> (cache != <span class="hljs-keyword">null</span>) &#123;
+    flushCacheIfRequired(ms);
+    <span class="hljs-keyword">if</span> (ms.isUseCache() &amp;&amp; resultHandler == <span class="hljs-keyword">null</span>) &#123;
+      ensureNoOutParams(ms, boundSql);
+			<span class="hljs-comment">// private final TransactionalCacheManager tcm = new TransactionalCacheManager();</span>
+      <span class="hljs-comment">// 从事务缓存管理器中获取，并判断是否已经存在执行过</span>
+      List&lt;E&gt; list = (List&lt;E&gt;) tcm.getObject(cache, key);
+      <span class="hljs-comment">// 如果为空，说明没执行过</span>
+      <span class="hljs-keyword">if</span> (list == <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-comment">// 调用包装执行器执行</span>
+        list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+        <span class="hljs-comment">// 将执行的结果放入缓存中</span>
+        tcm.putObject(cache, key, list); <span class="hljs-comment">// issue #578 and #116</span>
+      &#125;
+      <span class="hljs-keyword">return</span> list;
+    &#125;
+  &#125;
+  <span class="hljs-comment">// 调用包装执行器执行query</span>
+  <span class="hljs-keyword">return</span> delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+&#125;</code></pre>
+
+<p><code>BaseExecutor.query</code></p>
+<pre><code class="hljs java"><span class="hljs-comment">// 父类BaseExecutor.query</span>
+<span class="hljs-keyword">public</span> &lt;E&gt; <span class="hljs-function">List&lt;E&gt; <span class="hljs-title">query</span><span class="hljs-params">(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql)</span> <span class="hljs-keyword">throws</span> SQLException </span>&#123;
+  List&lt;E&gt; list;
+  <span class="hljs-keyword">try</span> &#123;
+    queryStack++;
+    list = resultHandler == <span class="hljs-keyword">null</span> ? (List&lt;E&gt;) localCache.getObject(key) : <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">if</span> (list != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// </span>
+      handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
+    &#125; <span class="hljs-keyword">else</span> &#123;
+      <span class="hljs-comment">// 执行查询,最终执行的结果会放入localCache对象中。</span>
+      list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
+    &#125;
+  &#125; <span class="hljs-keyword">finally</span> &#123;
+    queryStack--;
+  &#125;
+  <span class="hljs-keyword">return</span> list;
+&#125;</code></pre>
+
+<p>可以看出三个方法中都是做了很多缓存操作，提高效率，</p>
+<h4 id="核心查询-doQuery"><a href="#核心查询-doQuery" class="headerlink" title="核心查询-doQuery"></a>核心查询-<code>doQuery</code></h4><h5 id="BatchExecutor-doQuery-Core"><a href="#BatchExecutor-doQuery-Core" class="headerlink" title="BatchExecutor.doQuery (Core)"></a><code>BatchExecutor.doQuery (Core)</code></h5><pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;E&gt; <span class="hljs-function">List&lt;E&gt; <span class="hljs-title">doQuery</span><span class="hljs-params">(MappedStatement ms, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)</span> <span class="hljs-keyword">throws</span> SQLException </span>&#123;
+  Statement stmt = <span class="hljs-keyword">null</span>;
+  <span class="hljs-keyword">try</span> &#123;
+    flushStatements();
+    Configuration configuration = ms.getConfiguration();
+    <span class="hljs-comment">// 创建StatementHandler</span>
+    StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameterObject, rowBounds, resultHandler, boundSql);
+    <span class="hljs-comment">// 获取Connection，如果没有则使用DataSource进行创建</span>
+    Connection connection = getConnection(ms.getStatementLog());
+    <span class="hljs-comment">// 创建Statement对象，并设置timeOut和fetchSize属性</span>
+    stmt = handler.prepare(connection, transaction.getTimeout());
+    <span class="hljs-comment">// 进行参数替换</span>
+    handler.parameterize(stmt);
+    <span class="hljs-comment">// 执行SQL查询，获取到结果集，调用ResultSetHandler.handleResultSets进行结果集处理。</span>
+    <span class="hljs-keyword">return</span> handler.query(stmt, resultHandler);
+  &#125; <span class="hljs-keyword">finally</span> &#123;
+    closeStatement(stmt);
+  &#125;
+&#125;</code></pre>
+
+<p>该方法主要的作用是操作<code>Statement</code>对象。<code>1、创建StatementHandler处理对象。2、获取Connection连接。3、初始化Statement对象。4、进行参数替换。5、执行SQL完成查询</code>。</p>
+<h4 id="处理查询结果"><a href="#处理查询结果" class="headerlink" title="处理查询结果"></a>处理查询结果</h4><h5 id="ResultSetHandler-handleResultSets"><a href="#ResultSetHandler-handleResultSets" class="headerlink" title="ResultSetHandler.handleResultSets"></a><code>ResultSetHandler.handleResultSets</code></h5><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> List&lt;Object&gt; <span class="hljs-title">handleResultSets</span><span class="hljs-params">(Statement stmt)</span> <span class="hljs-keyword">throws</span> SQLException </span>&#123;
+  <span class="hljs-keyword">final</span> List&lt;Object&gt; multipleResults = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+
+  <span class="hljs-keyword">int</span> resultSetCount = <span class="hljs-number">0</span>;
+  ResultSetWrapper rsw = getFirstResultSet(stmt);
+	<span class="hljs-comment">// 获取当前Mapper的ResultMap</span>
+  List&lt;ResultMap&gt; resultMaps = mappedStatement.getResultMaps();
+  <span class="hljs-keyword">int</span> resultMapCount = resultMaps.size();
+	<span class="hljs-comment">// 遍历resultMaps</span>
+  <span class="hljs-keyword">while</span> (rsw != <span class="hljs-keyword">null</span> &amp;&amp; resultMapCount &gt; resultSetCount) &#123;
+    <span class="hljs-comment">// 获取resultMap</span>
+    ResultMap resultMap = resultMaps.get(resultSetCount);
+    <span class="hljs-comment">// 处理ResultSet</span>
+    handleResultSet(rsw, resultMap, multipleResults, <span class="hljs-keyword">null</span>);
+    <span class="hljs-comment">// 获取下一个ResultSet</span>
+    rsw = getNextResultSet(stmt);
+    cleanUpAfterHandlingResultSet();
+    resultSetCount++;
+  &#125;
+	<span class="hljs-comment">// 处理ResultSet</span>
+  String[] resultSets = mappedStatement.getResultSets();
+  <span class="hljs-keyword">if</span> (resultSets != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">while</span> (rsw != <span class="hljs-keyword">null</span> &amp;&amp; resultSetCount &lt; resultSets.length) &#123;
+      <span class="hljs-comment">// 获取ResultMapping</span>
+      ResultMapping parentMapping = nextResultMaps.get(resultSets[resultSetCount]);
+      <span class="hljs-keyword">if</span> (parentMapping != <span class="hljs-keyword">null</span>) &#123;
+        String nestedResultMapId = parentMapping.getNestedResultMapId();
+        ResultMap resultMap = configuration.getResultMap(nestedResultMapId);
+        handleResultSet(rsw, resultMap, <span class="hljs-keyword">null</span>, parentMapping);
+      &#125;
+      rsw = getNextResultSet(stmt);
+      cleanUpAfterHandlingResultSet();
+      resultSetCount++;
+    &#125;
+  &#125;
+
+  <span class="hljs-keyword">return</span> collapseSingleResultList(multipleResults);
+&#125;</code></pre>
+
+
+
+<h2 id="未完待续"><a href="#未完待续" class="headerlink" title="未完待续"></a>未完待续</h2>
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Orm/">Orm</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Mybatis/">Mybatis</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2020/01/09/spring-bean-definition-registry/index/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Ioc-Spring-BeanDefinition注册</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/11/09/spring-core-interface/index/">
+                        <span class="hidden-mobile">Ioc-Spring-核心接口</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    function loadValine() {
+      addScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "aK6NK3wQgpzFrKt1b2gLWClF-gzGzoHsz",
+          app_key: "dyu33pNKDg5FqSn8boyV27jO",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "identicon",
+          meta: ["nick","mail"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    }
+    waitElementVisible('vcomments', loadValine);
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://valine.js.org" target="_blank" rel="nofollow noopener noopener">comments
+      powered by Valine.</a></noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://doc.io-better.cn" target="_blank" rel="nofollow noopener">
+        <span>IO.BETTER</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Mybatis-执行&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
