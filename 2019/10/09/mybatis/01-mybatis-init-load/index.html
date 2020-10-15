@@ -1,0 +1,1586 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" type="image/png" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="description" content="IO.BETTER的博客">
+  <meta name="author" content="Better.Chen">
+  <meta name="keywords" content="">
+  <title>Mybaits 启动加载 - IO.BETTER的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+    
+  
+
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>IO.BETTER</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner intro-2" id="background" parallax=true
+         style="background: url('/img/back.webp') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="container page-header text-center fade-in-up">
+            <span class="h2" id="subtitle">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2019-10-09 09:28" pubdate>
+        2019年10月9日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      7.9k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      110
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-md">
+      <div class="container nopadding-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto" id="post">
+            <!-- SEO header -->
+            <h1 style="display: none">Mybaits 启动加载</h1>
+            
+            <div class="markdown-body" id="post-body">
+              <h1 id="Mybatis-启动加载"><a href="#Mybatis-启动加载" class="headerlink" title="Mybatis-启动加载"></a>Mybatis-启动加载</h1><h2 id="本章节讲述的内容"><a href="#本章节讲述的内容" class="headerlink" title="本章节讲述的内容"></a>本章节讲述的内容</h2><blockquote>
+<p>本章节主要分析Mybatis在启动时做了那些操作。带着以下疑问去阅读本章内容。本章内容涉及了大量的mybatis源码。</p>
+<p>1、Mybaits是如何解析配置文件（mybatis-config.xml）？</p>
+<p>2、Mybaits是如何解析Mapper文件（mapper.xml）？</p>
+<p>3、Mybatis是如何设计</p>
+</blockquote>
+<p>想知道如何使用Mybatis请参考<a href="https://mybatis.org/mybatis-3/zh/" target="_blank" rel="noopener">Mybatis官方文档</a>。</p>
+<h2 id="相关配置依赖"><a href="#相关配置依赖" class="headerlink" title="相关配置依赖"></a>相关配置依赖</h2><p>本文使用的Mybatis版本：<code>3.5.4</code>，不依赖任何Spring的环境。</p>
+<h3 id="坐标依赖"><a href="#坐标依赖" class="headerlink" title="坐标依赖"></a>坐标依赖</h3><p>Maven坐标：</p>
+<pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.mybatis<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>mybatis<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.5.4<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span></code></pre>
+
+
+
+<p>Gradle坐标：</p>
+<pre><code class="hljs groovy">compile <span class="hljs-string">'org.mybatis:mybatis:3.5.4'</span></code></pre>
+
+<h3 id="XML配置"><a href="#XML配置" class="headerlink" title="XML配置"></a>XML配置</h3><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">configuration</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">settings</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"logImpl"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"SLF4J"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"useGeneratedKeys"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"true"</span>/&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">setting</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"logPrefix"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"source-code-analysis"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">settings</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">typeAliases</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">package</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"io.better.mybatis.model"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">typeAliases</span>&gt;</span>
+
+    <span class="hljs-tag">&lt;<span class="hljs-name">environments</span> <span class="hljs-attr">default</span>=<span class="hljs-string">"development"</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">environment</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"development"</span>&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">transactionManager</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"JDBC"</span>/&gt;</span>
+            <span class="hljs-tag">&lt;<span class="hljs-name">dataSource</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"POOLED"</span>&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"driver"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"com.mysql.cj.jdbc.Driver"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"url"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"jdbc:mysql://localhost:3306/source-code-analysis"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"username"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"root"</span>/&gt;</span>
+                <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"123456"</span>/&gt;</span>
+            <span class="hljs-tag">&lt;/<span class="hljs-name">dataSource</span>&gt;</span>
+        <span class="hljs-tag">&lt;/<span class="hljs-name">environment</span>&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">environments</span>&gt;</span>
+    
+    <span class="hljs-tag">&lt;<span class="hljs-name">mappers</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">mapper</span> <span class="hljs-attr">resource</span>=<span class="hljs-string">"mybatis/mappers/UserMapper.xml"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">mappers</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">configuration</span>&gt;</span></code></pre>
+
+
+
+<p><strong>Mybatis的启动时主要分为两个阶段：<code>配置文件加载解析阶段，Mapper文件加载解析阶段</code>。</strong></p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">MybatisTest</span> </span>&#123;
+
+    SqlSessionFactory sqlSessionFactory;
+
+    <span class="hljs-meta">@Before</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">before</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;
+        String resource = <span class="hljs-string">"mybatis/mybatis-config.xml"</span>;
+        InputStream inputStream = Resources.getResourceAsStream(resource);
+        sqlSessionFactory = <span class="hljs-keyword">new</span> SqlSessionFactoryBuilder().build(inputStream);
+    &#125;
+
+    <span class="hljs-meta">@Test</span>
+    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testSqlSessionFactoryInit</span><span class="hljs-params">()</span> </span>&#123;
+        System.out.println(sqlSessionFactory);
+    &#125;
+&#125;</code></pre>
+
+
+
+<h2 id="配置文件加载解析阶段"><a href="#配置文件加载解析阶段" class="headerlink" title="配置文件加载解析阶段"></a>配置文件加载解析阶段</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><p>在这个阶段我们会去了解Mybatis是如何解析配置文件的？</p>
+<h3 id="构建开始"><a href="#构建开始" class="headerlink" title="构建开始"></a>构建开始</h3><p>从官网文档我们知道使用Mybatis第一步就是使用<code>SqlSessionFactoryBuilder</code>来构建<code>SqlSessionFactory</code>。</p>
+<p>而<code>SqlSessionFactoryBuilder</code>类提供了多个重载的<code>build</code>方法：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164710.png" srcset="/img/loading.gif" alt="image-20200430102857721" style="zoom:50%;" />
+
+<p>这里我们使用的是<code>build(InputStream)</code>方法。进入该方法的源代码：</p>
+<h3 id="执行-SqlSessionFactoryBuilder-build"><a href="#执行-SqlSessionFactoryBuilder-build" class="headerlink" title="执行-SqlSessionFactoryBuilder.build()"></a>执行-<code>SqlSessionFactoryBuilder.build()</code></h3><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSessionFactory <span class="hljs-title">build</span><span class="hljs-params">(InputStream inputStream, String environment, Properties properties)</span> </span>&#123;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 创建XMLConfigBuilder，该对象用于解析Mybatis配置文件</span>
+    XMLConfigBuilder parser = <span class="hljs-keyword">new</span> XMLConfigBuilder(inputStream, environment, properties);
+    <span class="hljs-comment">// build会用解析配置文件的结果来创建SqlSessionFactory</span>
+    <span class="hljs-keyword">return</span> build(parser.parse());
+  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+  &#125; <span class="hljs-keyword">finally</span> &#123;&#125;
+&#125;</code></pre>
+
+<p>其中 <code>build</code>方法比较简单，就是使用<code>XMLConfigBuilder.parse</code>生成的<code>Configuration</code>对象创建<code>SqlSessionFactory</code>。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSessionFactory <span class="hljs-title">build</span><span class="hljs-params">(Configuration config)</span> </span>&#123;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> DefaultSqlSessionFactory(config);
+&#125;</code></pre>
+
+<p>而<code>XMLConfigBuilder.parse</code>方法主要描述了Mybatis解析配置文件并生成Configuration对象的过程。</p>
+<p>成员变量：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164704.png" srcset="/img/loading.gif" alt="image-20200430103839043"></p>
+<ul>
+<li><code>parsed：</code>标识了配置是否已经解析。</li>
+<li><code>parser：</code>用于解析XML配置文件</li>
+<li><code>environment：</code>Mybatis的环境配置</li>
+<li><code>localReflectorFactory：</code>反射工厂</li>
+</ul>
+<p>构造器：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164659.png" srcset="/img/loading.gif" alt="image-20200430104004899"></p>
+<p><code>org.apache.ibatis.builder.xml.XMLConfigBuilder#parse</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Configuration <span class="hljs-title">parse</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (parsed) &#123;		<span class="hljs-comment">// 已经解析过直接抛出异常</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BuilderException(<span class="hljs-string">"Each XMLConfigBuilder can only be used once."</span>);
+  &#125;
+  parsed = <span class="hljs-keyword">true</span>;		<span class="hljs-comment">// 将parsed置为true，避免重复解析。</span>
+	<span class="hljs-comment">// 调用parser获取配置文件中的configuration节点</span>
+  <span class="hljs-comment">// 调用parseConfiguration方法继续解析</span>
+  parseConfiguration(parser.evalNode(<span class="hljs-string">"/configuration"</span>));
+  <span class="hljs-keyword">return</span> configuration;
+&#125;</code></pre>
+
+
+
+<h3 id="执行-XMLConfigBuilder-parseConfiguration"><a href="#执行-XMLConfigBuilder-parseConfiguration" class="headerlink" title="执行-XMLConfigBuilder.parseConfiguration()"></a>执行-<code>XMLConfigBuilder.parseConfiguration()</code></h3><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">parseConfiguration</span><span class="hljs-params">(XNode root)</span> </span>&#123;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 解析properties标签配置</span>
+    propertiesElement(root.evalNode(<span class="hljs-string">"properties"</span>));
+    <span class="hljs-comment">// 解析settings标签配置</span>
+    Properties settings = settingsAsProperties(root.evalNode(<span class="hljs-string">"settings"</span>));
+		<span class="hljs-comment">// 使用setting配置日志实现类</span>
+    loadCustomLogImpl(settings);
+    <span class="hljs-comment">// 解析typeAliases标签配置</span>
+    typeAliasesElement(root.evalNode(<span class="hljs-string">"typeAliases"</span>));
+    <span class="hljs-comment">// 解析plugins标签配置</span>
+    pluginElement(root.evalNode(<span class="hljs-string">"plugins"</span>));
+    <span class="hljs-comment">// 使用settings配置对configuration对象中的属性进行赋值</span>
+    settingsElement(settings);
+    <span class="hljs-comment">// 解析environments标签配置</span>
+    environmentsElement(root.evalNode(<span class="hljs-string">"environments"</span>));
+    <span class="hljs-comment">// 解析mappers标签配置, 开启Mapper文件解析阶段</span>
+    mapperElement(root.evalNode(<span class="hljs-string">"mappers"</span>));
+  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BuilderException(<span class="hljs-string">"Error parsing SQL Mapper Configuration. Cause: "</span> + e, e);
+  &#125;
+&#125;</code></pre>
+
+<p>在<code>parseConfiguration</code>方法中，Mybatis对配置中的不同标签分别进行了处理，这里只列举常用的标签配置，例如：<code>properties，settings，typeAliases，plugins，environments，mappers</code>等标签进行了处理。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">parseConfiguration</span><span class="hljs-params">(XNode root)</span> </span>&#123;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 解析properties标签配置</span>
+    propertiesElement(root.evalNode(<span class="hljs-string">"properties"</span>));
+    <span class="hljs-comment">// 解析settings标签配置</span>
+    Properties settings = settingsAsProperties(root.evalNode(<span class="hljs-string">"settings"</span>));
+		<span class="hljs-comment">// 使用setting配置日志实现类</span>
+    loadCustomLogImpl(settings);
+    <span class="hljs-comment">// 解析typeAliases标签配置</span>
+    typeAliasesElement(root.evalNode(<span class="hljs-string">"typeAliases"</span>));
+    <span class="hljs-comment">// 解析plugins标签配置</span>
+    pluginElement(root.evalNode(<span class="hljs-string">"plugins"</span>));
+    <span class="hljs-comment">// 使用settings配置对configuration对象中的属性进行赋值</span>
+    settingsElement(settings);
+    <span class="hljs-comment">// 解析environments标签配置</span>
+    environmentsElement(root.evalNode(<span class="hljs-string">"environments"</span>));
+    <span class="hljs-comment">// 解析mappers标签配置, 开启Mapper文件解析阶段</span>
+    mapperElement(root.evalNode(<span class="hljs-string">"mappers"</span>));
+  &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BuilderException(<span class="hljs-string">"Error parsing SQL Mapper Configuration. Cause: "</span> + e, e);
+  &#125;
+&#125;</code></pre>
+
+
+
+<h4 id="解析Properties标签"><a href="#解析Properties标签" class="headerlink" title="解析Properties标签"></a>解析<code>Properties</code>标签</h4><p>从上面代码可以看出<code>propertiesElement</code>方法是解析Properties标签的核心方法，源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">propertiesElement</span><span class="hljs-params">(XNode context)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+  <span class="hljs-keyword">if</span> (context != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-comment">// 获取properties标签中resource和url配置</span>
+    String resource = context.getStringAttribute(<span class="hljs-string">"resource"</span>);
+    String url = context.getStringAttribute(<span class="hljs-string">"url"</span>);
+    <span class="hljs-keyword">if</span> (resource != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 使用resource路径加载properties</span>
+      defaults.putAll(Resources.getResourceAsProperties(resource));
+    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (url != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 使用url加载properties</span>
+      defaults.putAll(Resources.getUrlAsProperties(url));
+    &#125;
+    <span class="hljs-comment">// 获取到configuration中已有的属性</span>
+    Properties vars = configuration.getVariables();
+    <span class="hljs-keyword">if</span> (vars != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 合并</span>
+      defaults.putAll(vars);
+    &#125; 
+    parser.setVariables(defaults);
+    <span class="hljs-comment">// 重新赋值</span>
+    configuration.setVariables(defaults);
+  &#125;
+&#125;</code></pre>
+
+<p>可以看出解析出来的<code>Properties</code>属性，最终被赋值到了<code>Configuration</code>中的<code>variables</code>对象中。</p>
+<pre><code class="hljs java"><span class="hljs-comment">// Configuration的成员变量</span>
+<span class="hljs-keyword">protected</span> Properties variables = <span class="hljs-keyword">new</span> Properties();</code></pre>
+
+
+
+<h4 id="解析Settings标签"><a href="#解析Settings标签" class="headerlink" title="解析Settings标签"></a>解析<code>Settings</code>标签</h4><p>使用类似的方式查看<code>settingsAsProperties</code>方法中处理<code>Setting</code>标签的逻辑。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Properties <span class="hljs-title">settingsAsProperties</span><span class="hljs-params">(XNode context)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (context == <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Properties();
+  &#125;
+  <span class="hljs-comment">// 获取所有setting子节点，并将其转成properties</span>
+  Properties props = context.getChildrenAsProperties();
+	<span class="hljs-comment">// 通过反射获取Configuration类的元数据信息</span>
+  MetaClass metaConfig = MetaClass.forClass(Configuration<span class="hljs-class">.<span class="hljs-keyword">class</span>, <span class="hljs-title">localReflectorFactory</span>)</span>;
+  <span class="hljs-comment">// 判断配置的属性在Configuration是否存在</span>
+  <span class="hljs-keyword">for</span> (Object key : props.keySet()) &#123;
+    <span class="hljs-comment">// 判断Configuration对象是否存在此配置的Setter方法。</span>
+    <span class="hljs-keyword">if</span> (!metaConfig.hasSetter(String.valueOf(key))) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BuilderException(<span class="hljs-string">"此配置无效："</span> + key);
+    &#125;
+  &#125;
+  <span class="hljs-keyword">return</span> props;
+&#125;</code></pre>
+
+<p><code>MetaClass.forClass</code>方法作用是使用<code>localReflectorFactory</code>创建一个<code>Reflector</code>实例，该实例中包含了Configuration类所有的<code>构造器，方法，属性</code>等。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164650.png" srcset="/img/loading.gif" alt=""></p>
+<h4 id="使用Settings标签"><a href="#使用Settings标签" class="headerlink" title="使用Settings标签"></a>使用<code>Settings</code>标签</h4><p>上面我们知道了<code>Settings</code>配置时如何解析的，但却没有使用到<code>Settings</code>配置。</p>
+<p><code>loadCustomVfs(settings)：</code>忽略</p>
+<p> <code>loadCustomLogImpl(settings)：</code>设置Mybatis的日志实现。</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164645.png" srcset="/img/loading.gif" alt="image-20200430111703591"  />
+
+<p><code>settingsElement(settings)：</code>设置Mybatis所有全局配置，Settings没有则使用默认配置。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164633.png" srcset="/img/loading.gif" alt="image-20200430111538374"></p>
+<h4 id="解析typeAliasesElement标签"><a href="#解析typeAliasesElement标签" class="headerlink" title="解析typeAliasesElement标签"></a>解析<code>typeAliasesElement</code>标签</h4><p>源代码如下:</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">typeAliasesElement</span><span class="hljs-params">(XNode parent)</span> </span>&#123;
+  <span class="hljs-comment">// 获取到typeAliases标签下所有的子标签</span>
+  <span class="hljs-keyword">for</span> (XNode child : parent.getChildren()) &#123;
+    <span class="hljs-comment">// 如果标签以package开头，说明配置的是整个包的别名</span>
+    <span class="hljs-keyword">if</span> (<span class="hljs-string">"package"</span>.equals(child.getName())) &#123;
+      String typeAliasPackage = child.getStringAttribute(<span class="hljs-string">"name"</span>);
+      <span class="hljs-comment">// registerAliases方法会扫描整个包下的类，并生成其对应的Class对象</span>
+      <span class="hljs-comment">// 最后添加到configuration.typeAliasRegistry属性对象中</span>
+      configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
+    &#125; 
+    <span class="hljs-comment">// 否则就是以typeAlias开头的标签，配置的是单个别名</span>
+    <span class="hljs-keyword">else</span> &#123;
+      <span class="hljs-comment">// 获取到别名</span>
+      String alias = child.getStringAttribute(<span class="hljs-string">"alias"</span>);
+      <span class="hljs-comment">// 获取别名对应的class</span>
+      String type = child.getStringAttribute(<span class="hljs-string">"type"</span>);
+      <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-comment">// 根据type解析出其真实的class对象</span>
+        Class&lt;?&gt; clazz = Resources.classForName(type);
+        <span class="hljs-keyword">if</span> (alias == <span class="hljs-keyword">null</span>) &#123;
+          <span class="hljs-comment">// 别名为空，默认使用类名做为别名</span>
+          typeAliasRegistry.registerAlias(clazz);
+        &#125; <span class="hljs-keyword">else</span> &#123;
+          typeAliasRegistry.registerAlias(alias, clazz);
+        &#125;
+      &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException e) &#123;
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>从代码可以看出配置<code>typeAliases</code>有两种方式：</p>
+<p>1、使用package标签配置整个包下的别名。</p>
+<p>2、使用typeAlias标签配置单个别名。</p>
+<p>获取到<code>别名对应的Class对象</code>后，最终调用了<code>typeAliasRegistry.registerAlias</code>方法注册了别名。而<code>typeAliasRegistry</code>对象引用之Configuration对象。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164624.png" srcset="/img/loading.gif" alt="image-20200430112247768"></p>
+<p>让我们进入<code>typeAliasRegistry.registerAlias</code>方法查看具体注册逻辑</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">registerAlias</span><span class="hljs-params">(String alias, Class&lt;?&gt; value)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (alias == <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TypeException(<span class="hljs-string">"The parameter alias cannot be null"</span>);
+  &#125;
+  <span class="hljs-comment">// issue #748</span>
+  String key = alias.toLowerCase(Locale.ENGLISH);
+  <span class="hljs-comment">// 判断alias是否已经存在，且对应的class不一致，抛出异常。</span>
+  <span class="hljs-keyword">if</span> (typeAliases.containsKey(key) &amp;&amp; typeAliases.get(key) != <span class="hljs-keyword">null</span> &amp;&amp; !typeAliases.get(key).equals(value)) &#123;
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TypeException(<span class="hljs-string">""</span>);
+  &#125;
+  <span class="hljs-comment">// 放入typeAliases中</span>
+  typeAliases.put(key, value);
+&#125;</code></pre>
+
+<p>让我们看一下该类的结构图：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164616.png" srcset="/img/loading.gif" alt="image-20200430112955479"></p>
+<p>从类结构图能看出<code>TypeAliasRegistry</code>类中重载了很多<code>registerAliases</code>方法，同时<code>typeAliases</code>保存了所有注册的别名信息。并且在初始化时默认添加了很多基础类型对应的别名。</p>
+<p>结论：Mybatis将解析的别名配置，最终放入了<code>Configuration</code>中的<code>TypeAliasRegistry</code>对象中。</p>
+<h4 id="解析plugins标签"><a href="#解析plugins标签" class="headerlink" title="解析plugins标签"></a>解析<code>plugins</code>标签</h4><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">pluginElement</span><span class="hljs-params">(XNode parent)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+  <span class="hljs-keyword">if</span> (parent != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">for</span> (XNode child : parent.getChildren()) &#123;
+      <span class="hljs-comment">// 获取配置的interceptor对应的class信息</span>
+      String interceptor = child.getStringAttribute(<span class="hljs-string">"interceptor"</span>);
+      <span class="hljs-comment">// 获取plugin标签下的属性</span>
+      Properties properties = child.getChildrenAsProperties();
+      <span class="hljs-comment">// resolveClass方法解析具体interceptor的class</span>
+      Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor().newInstance();
+      <span class="hljs-comment">// 将属性赋值给Interceptor</span>
+      interceptorInstance.setProperties(properties);
+      <span class="hljs-comment">// 添加到Configuration中</span>
+      configuration.addInterceptor(interceptorInstance);
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>可以看出解析Interceptor最终通过反射初始化被添加到了Configuration中 。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164611.png" srcset="/img/loading.gif" alt="image-20200430141031684"></p>
+<h4 id="解析environmentsElement标签"><a href="#解析environmentsElement标签" class="headerlink" title="解析environmentsElement标签"></a>解析<code>environmentsElement</code>标签</h4><p>参考Xml：</p>
+<pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">environments</span> <span class="hljs-attr">default</span>=<span class="hljs-string">"development"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">environment</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"development"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">transactionManager</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"JDBC"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">dataSource</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"POOLED"</span>&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"driver"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"com.mysql.cj.jdbc.Driver"</span>/&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"url"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"jdbc:mysql://localhost:3306/source-code-analysis"</span>/&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"username"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"root"</span>/&gt;</span>
+      <span class="hljs-tag">&lt;<span class="hljs-name">property</span> <span class="hljs-attr">name</span>=<span class="hljs-string">"password"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"123456"</span>/&gt;</span>
+    <span class="hljs-tag">&lt;/<span class="hljs-name">dataSource</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">environment</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">environments</span>&gt;</span></code></pre>
+
+
+
+<p>源代码：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">environmentsElement</span><span class="hljs-params">(XNode context)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+  <span class="hljs-keyword">if</span> (context != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-keyword">if</span> (environment == <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 获取默认的environment，即上面的development</span>
+      environment = context.getStringAttribute(<span class="hljs-string">"default"</span>);
+    &#125;
+    <span class="hljs-comment">// 获取到所有的environment子标签</span>
+    <span class="hljs-keyword">for</span> (XNode child : context.getChildren()) &#123;
+      String id = child.getStringAttribute(<span class="hljs-string">"id"</span>);
+      <span class="hljs-comment">// environment是否和默认配置的一致</span>
+      <span class="hljs-keyword">if</span> (isSpecifiedEnvironment(id)) &#123;
+        <span class="hljs-comment">// 创建事务管理器，即上面的JDBC事务管理器</span>
+        TransactionFactory txFactory = transactionManagerElement(child.evalNode(<span class="hljs-string">"transactionManager"</span>));
+        <span class="hljs-comment">// 创建数据源工厂</span>
+        DataSourceFactory dsFactory = dataSourceElement(child.evalNode(<span class="hljs-string">"dataSource"</span>));
+        <span class="hljs-comment">// 并获取到数据源</span>
+        DataSource dataSource = dsFactory.getDataSource();
+        <span class="hljs-comment">// 构建Environment</span>
+        Environment.Builder environmentBuilder = <span class="hljs-keyword">new</span> Environment.Builder(id)
+          .transactionFactory(txFactory)
+          .dataSource(dataSource);
+        <span class="hljs-comment">// 赋值给configuration对象</span>
+        configuration.setEnvironment(environmentBuilder.build());
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>从代码可以看出，Mybatis获取环境变量后创建了两个核心对象：1、TransactionFactory。2、DataSource，其对应的方法是</p>
+<p><code>transactionManagerElement()</code>， <code>dataSourceElement()</code>两个方法。底层实现都是通过反射进行实例化。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164602.png" srcset="/img/loading.gif" alt="image-20200430142709538"></p>
+<p>我们以<code>PooledDataSourceFactory</code>子类为例。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164552.png" srcset="/img/loading.gif" alt="image-20200430142750298"></p>
+<p>至此Mybatis的第一阶段配置文件的解析到此结束，这里还有Mapper文件的解析（下面讲解）。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>解析出来的<code>Properties</code>配置，最终被赋值到了<code>Configuration</code>中的<code>variables</code>对象中。</li>
+<li>解析出来的<code>typeAliases</code>配置，最终放入了<code>Configuration</code>中的<code>typeAliasRegistry</code>对象中。</li>
+<li>解析出来的<code>Plugins</code>配置，最终放入了Configuration中的<code>interceptorChain</code>对象中。</li>
+<li>解析出来的<code>environments</code>配置，用于<code>创建了数据源和事务工厂</code>。最终构建<code>Environment</code>对象赋值给Configuration中。</li>
+</ul>
+<p>从上面处理流程可以看出Configuration非常的重要，几乎所有的配置最终都会汇聚到Configuration对象中。</p>
+<h4 id="执行流程"><a href="#执行流程" class="headerlink" title="执行流程"></a>执行流程</h4><pre><code class="hljs txt">&gt; org.apache.ibatis.session.SqlSessionFactoryBuilder#build(java.io.InputStream) -&gt; Mybatis构建入口 
+  &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#parseConfiguration -&gt; 解析configuration标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#propertiesElement -&gt; 解析properties标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#settingsAsProperties -&gt; 解析settings标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#typeAliasesElement -&gt; 解析typeAliases标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#pluginElement -&gt; 解析plugins标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#environmentsElement -&gt; 解析environments标签配置
+   &gt; org.apache.ibatis.builder.xml.XMLConfigBuilder#mapperElement -&gt; 解析mappers标签配置</code></pre>
+
+
+
+<h2 id="Mapper文件加载解析阶段"><a href="#Mapper文件加载解析阶段" class="headerlink" title="Mapper文件加载解析阶段"></a>Mapper文件加载解析阶段</h2><h3 id="概述-1"><a href="#概述-1" class="headerlink" title="概述"></a>概述</h3><p>在这个阶段我们将深入了解Mybatis是如何解析Mapper文件。如何绑定Mapper接口和文件的关系。</p>
+<h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><p>在进入分析之前我们先思考几个问题：</p>
+<p>1、Mybatis是如何<code>Select，Insert，Delete，Update</code>标签的？</p>
+<p>2、Mybatis是如何处理<code>Include</code>标签的？</p>
+<p>3、Mybatis是如何处理动态SQL标签（<code>set，foreach，if</code>）？</p>
+<p>4、Mybatis是如何处理<code>resultMap</code>标签的？</p>
+<h3 id="入口"><a href="#入口" class="headerlink" title="入口"></a>入口</h3><p>在上个阶段的最后一行方法：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164546.png" srcset="/img/loading.gif" alt="image-20200430144550431"></p>
+<p>红圈内的方法就是解析Mapper文件流程的入口方法。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164537.png" srcset="/img/loading.gif" alt="image-20200430151542891"></p>
+<p>从图中可以看出解析Mapper文件有两种方式：</p>
+<ol>
+<li><p>使用Package标签扫描整个包下的Mapper接完成注册。</p>
+</li>
+<li><p>使用Mapper标签配置单个Mapper。</p>
+<ol>
+<li>Mapper标签支持三种方式 ：<code>resource（路径），url（网络），class（class类）</code>来加载Mapper。</li>
+</ol>
+</li>
+</ol>
+<h3 id="使用Package解析"><a href="#使用Package解析" class="headerlink" title="使用Package解析"></a>使用<code>Package</code>解析</h3><p>进入 <code>configuration.addMappers(mapperPackage)</code>方法，源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">addMappers</span><span class="hljs-params">(String packageName)</span> </span>&#123;
+  mapperRegistry.addMappers(packageName);
+&#125;</code></pre>
+
+<p>从<code>mapperRegistry</code>对象的命名可以看出，该对象主要是负责注册Mapper的。</p>
+<p>进入<code>addMappers</code>方法：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164530.png" srcset="/img/loading.gif" alt="image-20200430163542757"  />
+
+<p>代码会获取到包下所有Mapper对应的Class信息，并进行遍历调用 <code>addMapper</code>方法。</p>
+<p>我们可以看出Mapper解析是在MapperRegistry类中完成的，那么MapperRegistry是如何存储注册的Mapper的，来看看其类结构图：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164524.png" srcset="/img/loading.gif" alt="image-20200430163959992"></p>
+<p><code>knownMappers</code>充当了一个重要的角色，它存储了注册过的Mapper。而<code>MapperProxyFactory</code>对象则用于创建MapperProxy对象，此对象会对Mapper进行代理。</p>
+<p>接着进入<code>addMapper</code>方法查看添加细节。</p>
+<h4 id="执行MapperRegistry-addMapper添加Mapper"><a href="#执行MapperRegistry-addMapper添加Mapper" class="headerlink" title="执行MapperRegistry.addMapper添加Mapper"></a>执行<code>MapperRegistry.addMapper</code>添加<code>Mapper</code></h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> &lt;T&gt; <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">addMapper</span><span class="hljs-params">(Class&lt;T&gt; type)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (type.isInterface()) &#123;		<span class="hljs-comment">// 接口才处理</span>
+    <span class="hljs-keyword">if</span> (hasMapper(type)) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BindingException(<span class="hljs-string">"此Mapper已经存在"</span>);
+    &#125;
+    <span class="hljs-keyword">boolean</span> loadCompleted = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">try</span> &#123;
+      knownMappers.put(type, <span class="hljs-keyword">new</span> MapperProxyFactory&lt;&gt;(type));
+      <span class="hljs-comment">// 创建MapperAnnotationBuilder构建起</span>
+      MapperAnnotationBuilder parser = <span class="hljs-keyword">new</span> MapperAnnotationBuilder(config, type);
+      <span class="hljs-comment">// 构建Mapper</span>
+      parser.parse();
+      loadCompleted = <span class="hljs-keyword">true</span>;
+    &#125; <span class="hljs-keyword">finally</span> &#123;&#125;
+  &#125;
+&#125;</code></pre>
+
+<p>该方法主要做了以下几个操作：</p>
+<ul>
+<li>将Mapper对应的Class对象放入knownMappers对象中。</li>
+<li>创建MapperAnnotationBuilder构建器构建Mapper。</li>
+</ul>
+<h4 id="执行MapperAnnotationBuilder-parse解析Mapper"><a href="#执行MapperAnnotationBuilder-parse解析Mapper" class="headerlink" title="执行MapperAnnotationBuilder.parse解析Mapper"></a>执行<code>MapperAnnotationBuilder.parse</code>解析<code>Mapper</code></h4><p>源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">parse</span><span class="hljs-params">()</span> </span>&#123;
+  String resource = type.toString();
+  <span class="hljs-keyword">if</span> (!configuration.isResourceLoaded(resource)) &#123;		<span class="hljs-comment">// 判断当前资源是否加载过</span>
+    <span class="hljs-comment">// 步骤①</span>
+    loadXmlResource();
+    configuration.addLoadedResource(resource);	<span class="hljs-comment">// 添加到Configuration对象中，标识已经加载过</span>
+    assistant.setCurrentNamespace(type.getName());
+    parseCache();
+    parseCacheRef();
+    <span class="hljs-keyword">for</span> (Method method : type.getMethods()) &#123;
+      <span class="hljs-keyword">try</span> &#123;
+        <span class="hljs-keyword">if</span> (!method.isBridge()) &#123;
+          <span class="hljs-comment">// 步骤②</span>
+          parseStatement(method);
+        &#125;
+      &#125; <span class="hljs-keyword">catch</span> (IncompleteElementException e) &#123;&#125;
+    &#125;
+  &#125;
+  parsePendingMethods();
+&#125;</code></pre>
+
+<p>代码中我们看到了最为重要的两个方法：<code>loadXmlResource()：</code>用于加载Mapper对应的Xml文件，<code>parseStatement()</code>：解析Mapper方法中的注解信息。</p>
+<p>解析过的<code>resource</code>最终会添加到Configuration中的<code>loadedResources</code>（Set类型）对象中。</p>
+<h5 id="loadXmlResource"><a href="#loadXmlResource" class="headerlink" title="loadXmlResource"></a><code>loadXmlResource</code></h5><p>从上面可以得知该方法主要用于解析Mapper对应的xml文件。源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">loadXmlResource</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (!configuration.isResourceLoaded(<span class="hljs-string">"namespace:"</span> + type.getName())) &#123;
+    <span class="hljs-comment">// 将全类名中的.替换成/,以方便下面Resources获取输入流</span>
+    <span class="hljs-comment">// io.better.mybatis.mapper.UserMapper -&gt; io/better/mybatis/mapper/UserMapper.xml</span>
+    String xmlResource = type.getName().replace(<span class="hljs-string">'.'</span>, <span class="hljs-string">'/'</span>) + <span class="hljs-string">".xml"</span>;
+    <span class="hljs-comment">// 获取到Mapper对应的Xml文件输入流</span>
+    InputStream inputStream = type.getResourceAsStream(<span class="hljs-string">"/"</span> + xmlResource);
+    <span class="hljs-keyword">if</span> (inputStream == <span class="hljs-keyword">null</span>) &#123;
+        inputStream = Resources.getResourceAsStream(type.getClassLoader(), xmlResource);
+    &#125;
+    <span class="hljs-keyword">if</span> (inputStream != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-comment">// 步骤①</span>
+      XMLMapperBuilder xmlParser = <span class="hljs-keyword">new</span> XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource, configuration.getSqlFragments(), type.getName());
+      <span class="hljs-comment">// 步骤②</span>
+      xmlParser.parse();
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>从代码中可以看出，Mybatis通过替换<code>Mapper全路径</code>获取到<code>xml对应resource中的目录层级</code>，并获取到InputStream流。</p>
+<p>举例：<code>io.better.mybatis.mapper.UserMapper -&gt; resource/io/better/mybatis/mapper/UserMapper.xml</code>。</p>
+<p><strong>所以使用原生Mybatis需要注意xml放置的位置</strong>。</p>
+<p>紧接着Mybatis创建了<code>XMLMapperBuilder</code>对象，调用其parse方法进一步的解析xml文件。</p>
+<p>关于上面步骤①和步骤②的流程下面<code>Resource解析方式</code>会复用到，如果需要了解请直接跳转至Resource解析方法。</p>
+<h5 id="parseStatement"><a href="#parseStatement" class="headerlink" title="parseStatement"></a><code>parseStatement</code></h5><p>新版Mybatis支持注解执行SQL语句，通过<code>@SELECT，@INSERT，@UPDATE，@DELETE</code>注解来执行SQL语句。此方法就是解析这些注解并生成<code>MappedStatement</code>对象。</p>
+<p>源代码：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">parseStatement</span><span class="hljs-params">(Method method)</span> </span>&#123;
+  <span class="hljs-comment">// 获取参数来类型</span>
+  Class&lt;?&gt; parameterTypeClass = getParameterType(method);
+  LanguageDriver languageDriver = getLanguageDriver(method);
+  <span class="hljs-comment">// 获取到注解中编写的SQL语句</span>
+  SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);
+  <span class="hljs-keyword">if</span> (sqlSource != <span class="hljs-keyword">null</span>) &#123;
+    Options options = method.getAnnotation(Options<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+    <span class="hljs-comment">// 生成statementId</span>
+    <span class="hljs-keyword">final</span> String mappedStatementId = type.getName() + <span class="hljs-string">"."</span> + method.getName();
+    Integer fetchSize = <span class="hljs-keyword">null</span>;
+    Integer timeout = <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// 默认为PreparedStatement类型</span>
+    StatementType statementType = StatementType.PREPARED;
+    ResultSetType resultSetType = configuration.getDefaultResultSetType();
+    <span class="hljs-comment">//  获取到SQL指令类型，新增? 更新? 查询? 删除?</span>
+    SqlCommandType sqlCommandType = getSqlCommandType(method);
+    <span class="hljs-keyword">boolean</span> isSelect = sqlCommandType == SqlCommandType.SELECT;
+    <span class="hljs-keyword">boolean</span> flushCache = !isSelect;
+    <span class="hljs-keyword">boolean</span> useCache = isSelect;
+		<span class="hljs-comment">// 获取主键生成器</span>
+    KeyGenerator keyGenerator;
+    String keyProperty = <span class="hljs-keyword">null</span>;
+    String keyColumn = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">if</span> (SqlCommandType.INSERT.equals(sqlCommandType) || SqlCommandType.UPDATE.equals(sqlCommandType)) &#123;
+      <span class="hljs-comment">// first check for SelectKey annotation - that overrides everything else</span>
+      SelectKey selectKey = method.getAnnotation(SelectKey<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+      <span class="hljs-keyword">if</span> (selectKey != <span class="hljs-keyword">null</span>) &#123;
+        keyGenerator = handleSelectKeyAnnotation(selectKey, mappedStatementId, getParameterType(method), languageDriver);
+        keyProperty = selectKey.keyProperty();
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options == <span class="hljs-keyword">null</span>) &#123;
+        keyGenerator = configuration.isUseGeneratedKeys() ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+      &#125; <span class="hljs-keyword">else</span> &#123;
+        keyGenerator = options.useGeneratedKeys() ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+        keyProperty = options.keyProperty();
+        keyColumn = options.keyColumn();
+      &#125;
+    &#125; <span class="hljs-keyword">else</span> &#123;
+      keyGenerator = NoKeyGenerator.INSTANCE;
+    &#125;
+		
+    <span class="hljs-keyword">if</span> (options != <span class="hljs-keyword">null</span>) &#123;
+      <span class="hljs-keyword">if</span> (FlushCachePolicy.TRUE.equals(options.flushCache())) &#123;
+        flushCache = <span class="hljs-keyword">true</span>;
+      &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (FlushCachePolicy.FALSE.equals(options.flushCache())) &#123;
+        flushCache = <span class="hljs-keyword">false</span>;
+      &#125;
+      useCache = options.useCache();
+      fetchSize = options.fetchSize() &gt; -<span class="hljs-number">1</span> || options.fetchSize() == Integer.MIN_VALUE ? options.fetchSize() : <span class="hljs-keyword">null</span>; <span class="hljs-comment">//issue #348</span>
+      timeout = options.timeout() &gt; -<span class="hljs-number">1</span> ? options.timeout() : <span class="hljs-keyword">null</span>;
+      statementType = options.statementType();
+      <span class="hljs-keyword">if</span> (options.resultSetType() != ResultSetType.DEFAULT) &#123;
+        resultSetType = options.resultSetType();
+      &#125;
+    &#125;
+
+    String resultMapId = <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// 获取ResultMap对象</span>
+    ResultMap resultMapAnnotation = method.getAnnotation(ResultMap<span class="hljs-class">.<span class="hljs-keyword">class</span>)</span>;
+    <span class="hljs-keyword">if</span> (resultMapAnnotation != <span class="hljs-keyword">null</span>) &#123;
+      resultMapId = String.join(<span class="hljs-string">","</span>, resultMapAnnotation.value());
+    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (isSelect) &#123;
+      resultMapId = parseResultMap(method);
+    &#125;
+
+    <span class="hljs-comment">// 忽略参数</span>
+    <span class="hljs-comment">// 构建MappedStatement</span>
+    assistant.addMappedStatement();
+  &#125;
+&#125;</code></pre>
+
+<p>方法内部创建的对象和Mapper标签几乎一致，并且这种方式代码阅读行较差，简单的SQL语句还行，但是复杂的不行。此处不做细致讲解。（后期可能补上）。</p>
+<h3 id="使用Mapper标签解析"><a href="#使用Mapper标签解析" class="headerlink" title="使用Mapper标签解析"></a>使用<code>Mapper</code>标签解析</h3><p>入口：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164159.png" srcset="/img/loading.gif" alt="image-20200430183533866"></p>
+<p>可以看出一共有三种方式，分别是<code>resource，url，class</code> 。前两种最终都创建了XMLMapperBuilder对象，而最后一种和Package解析方式类似。</p>
+<p>我们重点关注<code>XMLMapperBuilder</code>这个对象。到这里与Package解析中的<code>loadXmlResource</code>方法处理一致。</p>
+<h4 id="执行XMLMapperBuilder-parse"><a href="#执行XMLMapperBuilder-parse" class="headerlink" title="执行XMLMapperBuilder.parse"></a>执行<code>XMLMapperBuilder.parse</code></h4><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501112922.png" srcset="/img/loading.gif" alt="image-20200501112922353" style="zoom:50%;" />
+
+<p>重点关注两个方法，分别是：<code>configurationElement：</code>用于解析XML中各个标签，<code>bindMapperForNamespace：</code>将Mapper接口绑定到Configuration上。</p>
+<h4 id="执行XMLMapperBuilder-configurationElement"><a href="#执行XMLMapperBuilder-configurationElement" class="headerlink" title="执行XMLMapperBuilder.configurationElement"></a>执行<code>XMLMapperBuilder.configurationElement</code></h4><p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501113148.png" srcset="/img/loading.gif" alt="image-20200501113147828"></p>
+<p>红圈中我们能够看到Mybatis对XML中的各个标签都进行了处理。</p>
+<ul>
+<li><pre><code>parameterMapElement -&gt; 处理parameterMap标签。
+<pre><code class="hljs diff">
+<span class="hljs-deletion">-</span></code></pre>
+resultMapElements -&gt; 处理resultMap标签
+<pre><code class="hljs diff">
+<span class="hljs-deletion">-</span></code></pre>
+sqlElement -&gt; 处理sql标签
+<pre><code class="hljs diff">
+<span class="hljs-deletion">-</span></code></pre>
+buildStatementFromContext -&gt; 处理Select，Insert，Delete，Update标签
+<pre><code class="hljs reasonml">
+接下来让我们逐个分析这些方法是如何处理标签的。
+
+
+
+#### 执行`bindMapperForNamespace`方法
+
+该方法主要作用是将解析后的XML和Mapper接口绑定到Configuration对象中。
+
+```java
+<span class="hljs-keyword">private</span> void bind<span class="hljs-constructor">MapperForNamespace()</span> &#123;
+  String namespace = builderAssistant.get<span class="hljs-constructor">CurrentNamespace()</span>;
+  <span class="hljs-keyword">if</span> (namespace != null) &#123;
+    Class&lt;?&gt; boundType = <span class="hljs-module-access"><span class="hljs-module"><span class="hljs-identifier">Resources</span>.</span></span><span class="hljs-keyword">class</span><span class="hljs-constructor">ForName(<span class="hljs-params">namespace</span>)</span>;
+    <span class="hljs-keyword">if</span> (boundType != null) &#123;
+      <span class="hljs-keyword">if</span> (!configuration.has<span class="hljs-constructor">Mapper(<span class="hljs-params">boundType</span>)</span>) &#123;
+        <span class="hljs-comment">// 标识当前XML已经解析过</span>
+        configuration.add<span class="hljs-constructor">LoadedResource(<span class="hljs-string">"namespace:"</span> + <span class="hljs-params">namespace</span>)</span>;
+        <span class="hljs-comment">// 添加到Configuration中</span>
+        configuration.add<span class="hljs-constructor">Mapper(<span class="hljs-params">boundType</span>)</span>;
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+
+</code></pre></li>
+</ul>
+<h4 id="解析ResultMap标签"><a href="#解析ResultMap标签" class="headerlink" title="解析ResultMap标签"></a>解析<code>ResultMap</code>标签</h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> ResultMap <span class="hljs-title">resultMapElement</span><span class="hljs-params">(XNode resultMapNode, List&lt;ResultMapping&gt; additionalResultMappings, Class&lt;?&gt; enclosingType)</span> </span>&#123;
+  String type = resultMapNode.getStringAttribute(<span class="hljs-string">"type"</span>); <span class="hljs-comment">// 这里删除了一些代码</span>
+  Class&lt;?&gt; typeClass = resolveClass(type);		<span class="hljs-comment">// 解析type获取对应的Class对象</span>
+  <span class="hljs-keyword">if</span> (typeClass == <span class="hljs-keyword">null</span>) &#123;
+    typeClass = inheritEnclosingType(resultMapNode, enclosingType);
+  &#125;
+  Discriminator discriminator = <span class="hljs-keyword">null</span>;
+  List&lt;ResultMapping&gt; resultMappings = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(additionalResultMappings);
+  List&lt;XNode&gt; resultChildren = resultMapNode.getChildren();
+  <span class="hljs-keyword">for</span> (XNode resultChild : resultChildren) &#123;
+    <span class="hljs-keyword">if</span> (<span class="hljs-string">"constructor"</span>.equals(resultChild.getName())) &#123;
+      processConstructorElement(resultChild, typeClass, resultMappings);  <span class="hljs-comment">// 步骤④：处理constructor标签</span>
+    &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-string">"discriminator"</span>.equals(resultChild.getName())) &#123;
+      <span class="hljs-comment">// 步骤③: 处理discriminator标签</span>
+      discriminator = processDiscriminatorElement(resultChild, typeClass, resultMappings);
+    &#125; <span class="hljs-keyword">else</span> &#123;  <span class="hljs-comment">// 处理其他标签，例如：id，result标签</span>
+      List&lt;ResultFlag&gt; flags = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+      <span class="hljs-keyword">if</span> (<span class="hljs-string">"id"</span>.equals(resultChild.getName())) &#123;
+        flags.add(ResultFlag.ID);
+      &#125;
+      <span class="hljs-comment">// 步骤①：调用buildResultMappingFromContext构建ResultMapping</span>
+      resultMappings.add(buildResultMappingFromContext(resultChild, typeClass, flags));
+    &#125;
+  &#125;
+  <span class="hljs-comment">// 获取到标签中的id，extends，autoMapping属性</span>
+  String id = resultMapNode.getStringAttribute(<span class="hljs-string">"id"</span>,
+          resultMapNode.getValueBasedIdentifier());
+  String extend = resultMapNode.getStringAttribute(<span class="hljs-string">"extends"</span>);
+  Boolean autoMapping = resultMapNode.getBooleanAttribute(<span class="hljs-string">"autoMapping"</span>);
+  <span class="hljs-comment">// 初始化ResultMapResolver对象，用于解析生成ResultMap对象</span>
+  ResultMapResolver resultMapResolver = <span class="hljs-keyword">new</span> ResultMapResolver(builderAssistant, id, typeClass, extend, discriminator, resultMappings, autoMapping);
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-comment">// 步骤②： 执行解析</span>
+    <span class="hljs-keyword">return</span> resultMapResolver.resolve();
+  &#125; <span class="hljs-keyword">catch</span> (IncompleteElementException  e) &#123;
+  &#125;
+&#125;</code></pre>
+
+<p>图中步骤③和步骤④最终都会 调用步骤①的方法，所以我们重点关注步骤①和步骤② 这两个方法。</p>
+<h5 id="生成ResultMapping"><a href="#生成ResultMapping" class="headerlink" title="生成ResultMapping"></a>生成<code>ResultMapping</code></h5><p>进入<code>buildResultMappingFromContext</code>方法，源代码如下：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> ResultMapping <span class="hljs-title">buildResultMappingFromContext</span><span class="hljs-params">(XNode context, Class&lt;?&gt; resultType, List&lt;ResultFlag&gt; flags)</span> </span>&#123;
+  String property;
+  <span class="hljs-keyword">if</span> (flags.contains(ResultFlag.CONSTRUCTOR)) &#123;
+    property = context.getStringAttribute(<span class="hljs-string">"name"</span>);
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    property = context.getStringAttribute(<span class="hljs-string">"property"</span>);
+  &#125;
+  String column = context.getStringAttribute(<span class="hljs-string">"column"</span>);
+  String javaType = context.getStringAttribute(<span class="hljs-string">"javaType"</span>);
+  String jdbcType = context.getStringAttribute(<span class="hljs-string">"jdbcType"</span>);
+  String nestedSelect = context.getStringAttribute(<span class="hljs-string">"select"</span>);
+  String nestedResultMap = context.getStringAttribute(<span class="hljs-string">"resultMap"</span>, () -&gt;
+    processNestedResultMappings(context, Collections.emptyList(), resultType));
+  String notNullColumn = context.getStringAttribute(<span class="hljs-string">"notNullColumn"</span>);
+  String columnPrefix = context.getStringAttribute(<span class="hljs-string">"columnPrefix"</span>);
+  String typeHandler = context.getStringAttribute(<span class="hljs-string">"typeHandler"</span>);
+  String resultSet = context.getStringAttribute(<span class="hljs-string">"resultSet"</span>);
+  String foreignColumn = context.getStringAttribute(<span class="hljs-string">"foreignColumn"</span>);
+  <span class="hljs-keyword">boolean</span> lazy = <span class="hljs-string">"lazy"</span>.equals(context.getStringAttribute(<span class="hljs-string">"fetchType"</span>, configuration.isLazyLoadingEnabled() ? <span class="hljs-string">"lazy"</span> : <span class="hljs-string">"eager"</span>));
+  Class&lt;?&gt; javaTypeClass = resolveClass(javaType);
+  Class&lt;? extends TypeHandler&lt;?&gt;&gt; typeHandlerClass = resolveClass(typeHandler);
+  JdbcType jdbcTypeEnum = resolveJdbcType(jdbcType);
+  <span class="hljs-comment">// 最终调用buildResultMapping生成了ResultMapping对象</span>
+  <span class="hljs-keyword">return</span> builderAssistant.buildResultMapping(resultType, property, column, javaTypeClass, jdbcTypeEnum, nestedSelect, nestedResultMap, notNullColumn, columnPrefix, typeHandlerClass, flags, resultSet, foreignColumn, lazy);
+&#125;</code></pre>
+
+<p>可以看出这个方法逻辑比较简单，将子节点中配置的属性获取出来，最终组装了ResultMapping对象。</p>
+<h5 id="生成ResultMap"><a href="#生成ResultMap" class="headerlink" title="生成ResultMap"></a>生成<code>ResultMap</code></h5><p><code>org.apache.ibatis.builder.ResultMapResolver#resolve</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ResultMap <span class="hljs-title">resolve</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-comment">// 调用工具类的</span>
+  <span class="hljs-keyword">return</span> assistant.addResultMap(<span class="hljs-keyword">this</span>.id, <span class="hljs-keyword">this</span>.type, <span class="hljs-keyword">this</span>.extend, <span class="hljs-keyword">this</span>.discriminator, <span class="hljs-keyword">this</span>.resultMappings, <span class="hljs-keyword">this</span>.autoMapping);
+&#125;</code></pre>
+
+<p><code>addResultMap</code></p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> ResultMap <span class="hljs-title">addResultMap</span><span class="hljs-params">(String id,Class&lt;?&gt; type,String extend,Discriminator discriminator,</span></span>
+<span class="hljs-function"><span class="hljs-params">    List&lt;ResultMapping&gt; resultMappings,Boolean autoMapping)</span> </span>&#123;
+  
+  id = applyCurrentNamespace(id, <span class="hljs-keyword">false</span>);
+  extend = applyCurrentNamespace(extend, <span class="hljs-keyword">true</span>);
+	<span class="hljs-comment">// 如果当前resultMap存在父resultMap</span>
+  <span class="hljs-keyword">if</span> (extend != <span class="hljs-keyword">null</span>) &#123;
+    <span class="hljs-comment">// configuration是否已经加载过父resultMap</span>
+    <span class="hljs-keyword">if</span> (!configuration.hasResultMap(extend)) &#123;
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IncompleteElementException(<span class="hljs-string">"Could not find a parent resultmap with id '"</span> + extend + <span class="hljs-string">"'"</span>);
+    &#125;
+   	<span class="hljs-comment">// 根据父resultMap的Id获取出父resultMap对象</span>
+    ResultMap resultMap = configuration.getResultMap(extend);
+    <span class="hljs-comment">// 去除父resultMap的resultMapping集合</span>
+    List&lt;ResultMapping&gt; extendedResultMappings = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;(resultMap.getResultMappings());
+    <span class="hljs-comment">// 去重</span>
+    extendedResultMappings.removeAll(resultMappings);
+    <span class="hljs-keyword">boolean</span> declaresConstructor = <span class="hljs-keyword">false</span>;
+    <span class="hljs-comment">// 遍历当前resultMap的resultMapping，判断其是否包含Constructor</span>
+    <span class="hljs-keyword">for</span> (ResultMapping resultMapping : resultMappings) &#123;
+      <span class="hljs-keyword">if</span> (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) &#123;
+        declaresConstructor = <span class="hljs-keyword">true</span>;
+        <span class="hljs-keyword">break</span>;
+      &#125;
+    &#125;
+    <span class="hljs-comment">// 如果当前resultMap声明了Constructor标签，则删除父resultMap中声明的Constructor标签</span>
+    <span class="hljs-keyword">if</span> (declaresConstructor) &#123;
+      extendedResultMappings.removeIf(
+        resultMapping -&gt; resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR));
+    &#125;
+    <span class="hljs-comment">// 将父resultMap的resultMapping添加到当前resultMap的resultMapping集合中</span>
+    resultMappings.addAll(extendedResultMappings);
+  &#125;
+  <span class="hljs-comment">// 构建ResultMap对象</span>
+  ResultMap resultMap = <span class="hljs-keyword">new</span> ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
+      .discriminator(discriminator).build();
+  <span class="hljs-comment">// 将构建好的ResultMap对象添加到Configuration中</span>
+  configuration.addResultMap(resultMap);
+  <span class="hljs-keyword">return</span> resultMap;
+&#125;</code></pre>
+
+<p>因为resultMap标签可以继承其他的resultMap标签，而这个方法主要就是为了处理resultMap继承的问题。可以得出结论：<strong>XML中的<code>resultMap标签</code>最终会被解析成<code>ResultMap对象</code>并复制给了Configuration</strong>。</p>
+<h4 id="解析SQL标签"><a href="#解析SQL标签" class="headerlink" title="解析SQL标签"></a>解析<code>SQL</code>标签</h4><p>resultMap标签解析完，继续看<code>sql标签</code>的解析过程：</p>
+<p>方法入口：</p>
+<pre><code class="hljs java">sqlElement(context.evalNodes(<span class="hljs-string">"/mapper/sql"</span>));</code></pre>
+
+<p>获取到XML中所有的sql标签节点对象。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">sqlElement</span><span class="hljs-params">(List&lt;XNode&gt; list, String requiredDatabaseId)</span> </span>&#123;
+  <span class="hljs-keyword">for</span> (XNode context : list) &#123;
+    String databaseId = context.getStringAttribute(<span class="hljs-string">"databaseId"</span>);
+    <span class="hljs-comment">// 获取到sql标签的ID</span>
+    String id = context.getStringAttribute(<span class="hljs-string">"id"</span>);
+    <span class="hljs-comment">// 和namespace进行拼接</span>
+    id = builderAssistant.applyCurrentNamespace(id, <span class="hljs-keyword">false</span>);
+    <span class="hljs-comment">// 判断是否已经存在次sql标签</span>
+    <span class="hljs-keyword">if</span> (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) &#123;
+      <span class="hljs-comment">// 不存在，添加到sqlFragments中</span>
+      <span class="hljs-comment">// sqlFragments存在于configuration中</span>
+      sqlFragments.put(id, context);
+    &#125;
+  &#125;
+&#125;</code></pre>
+
+<p>该方法功能很简单，就是将<code>sql标签的id和对应的XNode节点对象</code>放入到<code>sqlFragments</code>中。</p>
+<p><code>sqlFragments</code>对象在后面解析<code>select|insert|update|delete</code>标签中的include标签时会使用到。</p>
+<h4 id="解析Crud标签"><a href="#解析Crud标签" class="headerlink" title="解析Crud标签"></a>解析<code>Crud</code>标签</h4><p>方法入口 ：</p>
+<pre><code class="hljs java">buildStatementFromContext(context.evalNodes(<span class="hljs-string">"select|insert|update|delete"</span>));</code></pre>
+
+<p>获取的所有的CRUD标签。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">buildStatementFromContext</span><span class="hljs-params">(List&lt;XNode&gt; list, String requiredDatabaseId)</span> </span>&#123;
+  <span class="hljs-comment">// 获取到所有的select，insert，delete，update标签节点</span>
+  <span class="hljs-keyword">for</span> (XNode context : list) &#123;
+    <span class="hljs-comment">// 为每一个crud标签创建XMLStatementBuilder对象，用于构建每个标签所对应的MapperStatement对象</span>
+    <span class="hljs-keyword">final</span> XMLStatementBuilder statementParser = <span class="hljs-keyword">new</span> XMLStatementBuilder(configuration, builderAssistant, context, requiredDatabaseId);
+    <span class="hljs-comment">// 解析并生成MapperStatement对象</span>
+    statementParser.parseStatementNode();
+  &#125; <span class="hljs-comment">// 忽略了异常处理</span>
+&#125;</code></pre>
+
+<p>该方法对获取到的<code>insert，select，update，delete</code>节点进行了遍历，并实例化了<code>XMLStatementBuilder</code>构建器来构建<code>MapperdStatement</code>。</p>
+<p><code>XMLStatementBuilder</code>会将每个<code>crud标签</code>构建成一个<code>MapperdStatement对象</code>。它两是一对一的关系，后面调用方法执行SQL时就会获取到方法对应的MapperdStatement对象。</p>
+<p>进入<code>parseStatementNode</code>方法：</p>
+<p>重点关注标记的步骤</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">parseStatementNode</span><span class="hljs-params">()</span> </span>&#123;
+  String id = context.getStringAttribute(<span class="hljs-string">"id"</span>);
+  String databaseId = context.getStringAttribute(<span class="hljs-string">"databaseId"</span>);
+
+  <span class="hljs-keyword">if</span> (!databaseIdMatchesCurrent(id, databaseId, <span class="hljs-keyword">this</span>.requiredDatabaseId)) &#123;
+    <span class="hljs-keyword">return</span>;
+  &#125;
+  String nodeName = context.getNode().getNodeName();
+  SqlCommandType sqlCommandType = SqlCommandType.valueOf(nodeName.toUpperCase(Locale.ENGLISH));
+  <span class="hljs-keyword">boolean</span> isSelect = sqlCommandType == SqlCommandType.SELECT;
+  <span class="hljs-keyword">boolean</span> flushCache = context.getBooleanAttribute(<span class="hljs-string">"flushCache"</span>, !isSelect);
+  <span class="hljs-keyword">boolean</span> useCache = context.getBooleanAttribute(<span class="hljs-string">"useCache"</span>, isSelect);
+  <span class="hljs-keyword">boolean</span> resultOrdered = context.getBooleanAttribute(<span class="hljs-string">"resultOrdered"</span>, <span class="hljs-keyword">false</span>);
+
+  <span class="hljs-comment">// 步骤①</span>
+  XMLIncludeTransformer includeParser = <span class="hljs-keyword">new</span> XMLIncludeTransformer(configuration, builderAssistant);
+  includeParser.applyIncludes(context.getNode());
+
+  String parameterType = context.getStringAttribute(<span class="hljs-string">"parameterType"</span>);
+  Class&lt;?&gt; parameterTypeClass = resolveClass(parameterType);
+
+  String lang = context.getStringAttribute(<span class="hljs-string">"lang"</span>);
+  LanguageDriver langDriver = getLanguageDriver(lang);
+
+  <span class="hljs-comment">// 步骤②</span>
+  processSelectKeyNodes(id, parameterTypeClass, langDriver);
+
+  <span class="hljs-comment">// </span>
+  KeyGenerator keyGenerator;
+  String keyStatementId = id + SelectKeyGenerator.SELECT_KEY_SUFFIX;
+  keyStatementId = builderAssistant.applyCurrentNamespace(keyStatementId, <span class="hljs-keyword">true</span>);
+  <span class="hljs-keyword">if</span> (configuration.hasKeyGenerator(keyStatementId)) &#123;
+    keyGenerator = configuration.getKeyGenerator(keyStatementId);
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    keyGenerator = context.getBooleanAttribute(<span class="hljs-string">"useGeneratedKeys"</span>,
+        configuration.isUseGeneratedKeys() &amp;&amp; SqlCommandType.INSERT.equals(sqlCommandType))
+        ? Jdbc3KeyGenerator.INSTANCE : NoKeyGenerator.INSTANCE;
+  &#125;
+	<span class="hljs-comment">// 步骤③</span>
+  SqlSource sqlSource = langDriver.createSqlSource(configuration, context, parameterTypeClass);
+  StatementType statementType = StatementType.valueOf(context.getStringAttribute(<span class="hljs-string">"statementType"</span>, StatementType.PREPARED.toString()));
+  Integer fetchSize = context.getIntAttribute(<span class="hljs-string">"fetchSize"</span>);
+  Integer timeout = context.getIntAttribute(<span class="hljs-string">"timeout"</span>);
+  String parameterMap = context.getStringAttribute(<span class="hljs-string">"parameterMap"</span>);
+  String resultType = context.getStringAttribute(<span class="hljs-string">"resultType"</span>);
+  Class&lt;?&gt; resultTypeClass = resolveClass(resultType);
+  String resultMap = context.getStringAttribute(<span class="hljs-string">"resultMap"</span>);
+  String resultSetType = context.getStringAttribute(<span class="hljs-string">"resultSetType"</span>);
+  ResultSetType resultSetTypeEnum = resolveResultSetType(resultSetType);
+  <span class="hljs-keyword">if</span> (resultSetTypeEnum == <span class="hljs-keyword">null</span>) &#123;
+    resultSetTypeEnum = configuration.getDefaultResultSetType();
+  &#125;
+  String keyProperty = context.getStringAttribute(<span class="hljs-string">"keyProperty"</span>);
+  String keyColumn = context.getStringAttribute(<span class="hljs-string">"keyColumn"</span>);
+  String resultSets = context.getStringAttribute(<span class="hljs-string">"resultSets"</span>);
+  <span class="hljs-comment">// 步骤④</span>
+  builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
+      fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
+      resultSetTypeEnum, flushCache, useCache, resultOrdered,
+      keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);
+&#125;</code></pre>
+
+<p>这段代码很长，无需全部阅读，只需查看标记的核心步骤即可。</p>
+<ul>
+<li>步骤①：处理curd标签中的的Include标签。</li>
+<li>步骤②：处理insert标签中的selectKey标签。</li>
+<li>步骤③：处理curd标签中的动态标签 。</li>
+<li>步骤④：将使用最终的crud标签生成MappedStatement对象。</li>
+</ul>
+<h5 id="处理Include标签"><a href="#处理Include标签" class="headerlink" title="处理Include标签"></a>处理<code>Include</code>标签</h5><p>在分析<code>XMLIncludeTransformer.applyIncludes</code>方法前，我们先来看几个问题，以便我们更好的理解Mybatis对 <code>&lt;include/&gt;</code>的处理逻辑：</p>
+<ul>
+<li>Mybatis是如何拆分含有<code>&lt;include/&gt;</code>标签的SQL？拆分各部分SQL关系如何维护？</li>
+<li>Mybatis是如何处理嵌套<code>&lt;include/&gt;</code>标签？</li>
+</ul>
+<p>带着这两个问题，我们进入<code>applyIncludes</code>方法。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">applyIncludes</span><span class="hljs-params">(Node source, <span class="hljs-keyword">final</span> Properties variablesContext, <span class="hljs-keyword">boolean</span> included)</span> </span>&#123;
+	<span class="hljs-comment">//  步骤②</span>
+  <span class="hljs-keyword">if</span> (source.getNodeName().equals(<span class="hljs-string">"include"</span>)) &#123;
+    <span class="hljs-comment">// 步骤⑤ 从sqlFragments中获取include所引用的id，即sql标签中编写的SQL语句。</span>
+    Node toInclude = findSqlFragment(getStringAttribute(source, <span class="hljs-string">"refid"</span>), variablesContext);
+    Properties toIncludeContext = getVariablesContext(source, variablesContext);
+    <span class="hljs-comment">// 步骤⑥ 递归，处理toInclude中嵌套的include标签</span>
+    applyIncludes(toInclude, toIncludeContext, <span class="hljs-keyword">true</span>);
+    <span class="hljs-comment">// 如果（toInclude节点）和 source（引入toInclude节点）不在同一个document下</span>
+    <span class="hljs-keyword">if</span> (toInclude.getOwnerDocument() != source.getOwnerDocument()) &#123;
+      <span class="hljs-comment">// 将（toInclude节点）导入到 source 节点中去</span>
+      toInclude = source.getOwnerDocument().importNode(toInclude, <span class="hljs-keyword">true</span>);
+    &#125;
+    <span class="hljs-comment">// 步骤⑦ 将 source 节点替换成（toInclude节点）</span>
+    source.getParentNode().replaceChild(toInclude, source);
+    <span class="hljs-comment">// 为了方便阅读对源代码进行了修改</span>
+    Node toIncludeParentNode = toInclude.getParentNode()；
+    <span class="hljs-comment">// （toInclude节点）含有子节点，可能是嵌套的include标签</span>
+    <span class="hljs-keyword">while</span> (toInclude.hasChildNodes()) &#123;
+      <span class="hljs-comment">// 将（toInclude节点）下的子节点添加到父节点的集合中，并在（toInclude节点）前面</span>
+      toIncludeParentNode.insertBefore(toInclude.getFirstChild(), toInclude);
+    &#125;
+    <span class="hljs-comment">// 步骤⑧ 从父节点中删除（toInclude节点）</span>
+    toIncludeParentNode.removeChild(toInclude);
+  &#125; 
+  <span class="hljs-comment">// 步骤①</span>
+  <span class="hljs-comment">// source对象为DeferredElementImpl类型，即include，select，insert，update，delete等标签</span>
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (source.getNodeType() == Node.ELEMENT_NODE) &#123;
+
+    <span class="hljs-comment">// 步骤③</span>
+    NodeList children = source.getChildNodes();
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; children.getLength(); i++) &#123;
+      <span class="hljs-comment">// 步骤④</span>
+      applyIncludes(children.item(i), variablesContext, included);
+    &#125;
+  &#125; 
+  <span class="hljs-comment">// source对象为DeferredTextImpl类型，</span>
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (included &amp;&amp; (source.getNodeType() == Node.TEXT_NODE || source.getNodeType() == Node.CDATA_SECTION_NODE) &amp;&amp; !variablesContext.isEmpty()) &#123;
+    <span class="hljs-comment">// 步骤⑨ 最终替换对象里的data属性</span>
+    source.setNodeValue(PropertyParser.parse(source.getNodeValue(), variablesContext));
+  &#125;
+&#125;</code></pre>
+
+<p>这段代码大量使用了递归调用，来处理嵌套标签。</p>
+<p>执行流程：</p>
+<ul>
+<li>判断节点类型是否为元素节点<ul>
+<li>是 <code>--&gt; 步骤①</code><ul>
+<li>获取到子节点，根据<code>include</code>标签进行拆分。<code>--&gt; 步骤③</code></li>
+<li>遍历子节点，递归处理子节点。 <code>--&gt; 步骤④</code></li>
+</ul>
+</li>
+<li>否 <code>--&gt; 步骤②</code>  <ul>
+<li>从<code>sqlFragments</code>中获取到引入SQL节点。 <code>--&gt;步骤⑤</code></li>
+<li>递归处理引入的SQL节点，防止引入的SQL中存在嵌套的Include节点。 <code>--&gt; 步骤⑥</code></li>
+<li>逐层将<code>include标签</code>替换成<code>include中实际的SQL</code>。 <code>--&gt;步骤⑦</code> </li>
+<li>最终删除<code>include标签</code>。 <code>--&gt; 步骤⑧</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>直接设置节点值 <code>--&gt;步骤⑨</code></li>
+</ul>
+<p>讲述了大致流程，这里会有一个小疑问，Mybatis到底是如何获取子节点的？是如何拆分的？为了更好的理解这个问题， 引入一张<code>select标签</code>引入<code>&lt;include/&gt;</code>标签的XML解析Debug图：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164132.png" srcset="/img/loading.gif" alt="include解析" style="zoom:50%;" />
+
+<p>从上图画红圈的地方可以，整个<code>select</code>语句被拆分成了三个部分，每个对象中都有：</p>
+<ul>
+<li><code>select</code> 一行产生了一个<code>DeferredTextImpl</code>类型的 对象，简称对象A。</li>
+<li><code>include</code>一行产生了一个<code>DeferredElementImpl</code>类型的对象，简称对象B。</li>
+<li><code>form</code> 和<code>where</code>两行产生了一个<code>DeferredTextImpl</code>类型的对象，简称对象C。</li>
+</ul>
+<p>每个对象中都含有以下三个属性：</p>
+<ul>
+<li><p><code>data</code>标识了当前对象所对应的<code>sql</code>语句内容。</p>
+</li>
+<li><p><code>previousSibling</code>标识了当前对象的前一个对象。</p>
+</li>
+<li><p><code>nextSibling</code>标识来当前对象的下一个对象 。</p>
+</li>
+</ul>
+<p>三个对象前后之前的关系：</p>
+<pre><code class="hljs tex">对象A.previousSibling -&gt; 对象C
+对象B.previousSibling -&gt; 对象A
+对象C.previousSibling -&gt; 对象B</code></pre>
+
+<p><strong>这里我们可以看出Mybatis使用了类似  <code>双向链表</code> 的结构来管理标签被拆分后形成的对象。</strong></p>
+<p><strong>这里有一个疑问，为什么<code>select</code>被拆分成了一行，而<code>from</code>和<code>where</code>为什么没被拆分成两行，而是拆分成了一行 ？</strong></p>
+<p>为了验证这个问题，将<code>&lt;include/&gt;</code>替换掉，生成的对象属性如下图。未引入Include的XML解析Debug图：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501164004.png" srcset="/img/loading.gif" style="zoom:50%;" />
+
+<p><strong>这里可以得出的结论就是：Mybatis会以<code>&lt;include/&gt;</code>标签为分割线进行SQL语句的切分。</strong></p>
+<p>步骤②处理SelectKey标签代码不做分析，感兴趣的可以自行查看源代码。</p>
+<h5 id="处理dynamic标签"><a href="#处理dynamic标签" class="headerlink" title="处理dynamic标签"></a>处理<code>dynamic</code>标签</h5><p>在进入<code>langDriver.createSqlSource</code>方法前我们先来思考两个问题？</p>
+<ul>
+<li>Mybatis是如何区分动态SQL和静态SQL？</li>
+<li>Mybatis是如何处理包含动态标签的SQL？</li>
+</ul>
+<p>带着这两个问题我们继续分析：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSource <span class="hljs-title">createSqlSource</span><span class="hljs-params">(Configuration configuration, XNode script, Class&lt;?&gt; parameterType)</span> </span>&#123;
+  <span class="hljs-comment">// 创建XMLScriptBuilder构建起</span>
+  XMLScriptBuilder builder = <span class="hljs-keyword">new</span> XMLScriptBuilder(configuration, script, parameterType);
+  <span class="hljs-comment">// 构建script节点</span>
+  <span class="hljs-keyword">return</span> builder.parseScriptNode();
+&#125;</code></pre>
+
+<p>我们可以看出Mybatis创建了<code>XMLScriptBuilder</code>构建器来构建<code>动态标签</code>。我们先来看看XMLScriptBuilder类结构：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501154915.png" srcset="/img/loading.gif" alt="image-20200501154915783" style="zoom:50%;" />
+
+<p>从类结构图可以看出有8个处理动态标签的处理类，使用<code>isDynamic()</code>判断是否为动态标签 ，使用<code>nodeHandlerMap</code>来存储动态标签处理器。</p>
+<p>让我进入<code>parseScriptNode</code>方法一探究竟：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSource <span class="hljs-title">parseScriptNode</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-comment">// 解析动态标签</span>
+  MixedSqlNode rootSqlNode = parseDynamicTags(context);
+  SqlSource sqlSource;
+  <span class="hljs-keyword">if</span> (isDynamic) &#123;
+    <span class="hljs-comment">// 动态SQL源</span>
+    sqlSource = <span class="hljs-keyword">new</span> DynamicSqlSource(configuration, rootSqlNode);
+  &#125; <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// 静态SQL源</span>
+    sqlSource = <span class="hljs-keyword">new</span> RawSqlSource(configuration, rootSqlNode, parameterType);
+  &#125;
+  <span class="hljs-keyword">return</span> sqlSource;
+&#125;</code></pre>
+
+<p>从代码中可以看出Mybatis为动态SQL创建了<code>DynamicSqlSource</code>子类，为静态SQL创建了<code>RawSqlSource</code>子类。到这里我们的第一个问题就比较清晰了，<strong>Mybatis使用了不同的SqlSource子类来区分动态SQL和静态SQL</strong>。</p>
+<p>进入<code>parseDynamicTags</code>方法，查看解析动态标签的具体方法：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> MixedSqlNode <span class="hljs-title">parseDynamicTags</span><span class="hljs-params">(XNode node)</span> </span>&#123;
+  List&lt;SqlNode&gt; contents = <span class="hljs-keyword">new</span> ArrayList&lt;&gt;();
+  <span class="hljs-comment">// 步骤①</span>
+  NodeList children = node.getNode().getChildNodes();
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; children.getLength(); i++) &#123;
+    XNode child = node.newXNode(children.item(i));
+    <span class="hljs-comment">// 步骤②</span>
+    <span class="hljs-keyword">if</span> (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) &#123;
+      <span class="hljs-comment">// 步骤③</span>
+      String data = child.getStringBody(<span class="hljs-string">""</span>);
+      TextSqlNode textSqlNode = <span class="hljs-keyword">new</span> TextSqlNode(data);
+      <span class="hljs-keyword">if</span> (textSqlNode.isDynamic()) &#123;
+        contents.add(textSqlNode);
+        isDynamic = <span class="hljs-keyword">true</span>;
+      &#125; <span class="hljs-keyword">else</span> &#123;
+        <span class="hljs-comment">// 步骤③</span>
+        contents.add(<span class="hljs-keyword">new</span> StaticTextSqlNode(data));
+      &#125;
+    &#125; 
+    <span class="hljs-comment">// 步骤④</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (child.getNode().getNodeType() == Node.ELEMENT_NODE) &#123; <span class="hljs-number">8</span>
+      String nodeName = child.getNode().getNodeName();
+      <span class="hljs-comment">// 步骤⑤</span>
+      NodeHandler handler = nodeHandlerMap.get(nodeName);
+      <span class="hljs-keyword">if</span> (handler == <span class="hljs-keyword">null</span>) &#123;
+        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BuilderException(<span class="hljs-string">"Unknown element &lt;"</span> + nodeName + <span class="hljs-string">"&gt; in SQL statement."</span>);
+      &#125;
+      <span class="hljs-comment">// 步骤⑤</span>
+      handler.handleNode(child, contents);
+      isDynamic = <span class="hljs-keyword">true</span>;
+    &#125;
+  &#125;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> MixedSqlNode(contents);
+&#125;</code></pre>
+
+<p>配合着源代码梳理一下执行流程，以便更好的理解Mybatis处理逻辑：</p>
+<ul>
+<li>获取到<code>crud标签</code>下所有的<code>子节点</code>，并进行遍历 –&gt; 步骤①</li>
+<li>判断子节点的类型是否是元素节点（即动态标签节点）<ul>
+<li>是 –&gt; <code>动态标签</code> <code>--&gt; 步骤④</code><ul>
+<li>根据动态标签名称从nodeHandlerMap获取出对应的处理器  <code>--&gt; 步骤⑤</code></li>
+<li>调用处理器的handleNode方法处理  <code>--&gt; 步骤⑤</code></li>
+</ul>
+</li>
+<li>否 –&gt; <code>txt文本类型的普通SQL语句</code><ul>
+<li>获取到节点中的<code>Body</code>即SQL语句，创建<code>StaticTextSqlNode</code>对象包装 <code>--&gt; 步骤③</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>从上面的类图我们已经知道<code>各自动态标签都对应各自的Handle</code>，那Handle是如何添加到<code>nodeHandlerMap</code>中的呢？</p>
+<p>答案就在<code>XMLScriptBuilder</code>的构造方法中 。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501161032.png" srcset="/img/loading.gif" alt="image-20200501161032311"></p>
+<p>接着我们来看看各个Handle对各自标签的处理过程，我们以<code>TrimHandler</code>为准，进入<code>handleNode</code>方法一探究竟：</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">handleNode</span><span class="hljs-params">(XNode nodeToHandle, List&lt;SqlNode&gt; targetContents)</span> </span>&#123;
+  <span class="hljs-comment">// 递归处理当前动态标签里包含的其他动态标签，即嵌套动态标签。</span>
+  MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
+  String prefix = nodeToHandle.getStringAttribute(<span class="hljs-string">"prefix"</span>);
+  String prefixOverrides = nodeToHandle.getStringAttribute(<span class="hljs-string">"prefixOverrides"</span>);
+  String suffix = nodeToHandle.getStringAttribute(<span class="hljs-string">"suffix"</span>);
+  String suffixOverrides = nodeToHandle.getStringAttribute(<span class="hljs-string">"suffixOverrides"</span>);
+  <span class="hljs-comment">// 构建TrimSqlNode对象</span>
+  TrimSqlNode trim = <span class="hljs-keyword">new</span> TrimSqlNode(configuration, mixedSqlNode, prefix, prefixOverrides, suffix, suffixOverrides);
+ 	<span class="hljs-comment">// 添加到集合中</span>
+  targetContents.add(trim);
+&#125;</code></pre>
+
+<p>上诉代码将<code>&lt;trim/&gt;</code>签配置的属性都读取出来，并最终生成了一个<code>TrimSqlNode</code>对象。<strong>这里我们可以猜测：是不是每一个标签都会对应拥有一个<code>SqlNode</code>呢？</strong></p>
+<p>是的你没猜错，Mybatis为每种动态标签都生成了对应的SqlNode。下面为SqlNode的继承图 ：</p>
+<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200501163950.png" srcset="/img/loading.gif" alt="image-20200424174851998" style="zoom:50%;" />
+
+
+
+<p><strong>到这里，我们上述的第二个问题就非常清晰了：</strong></p>
+<p><strong>Mybatis使用不同的<code>NodeHandler</code>来处理不同的动态标签，使用不同的<code>SqlNode</code>来接收不同动态标签的配置。</strong></p>
+<p>到此SQL解析完成了吗？其实并没有，Mybatis对静态SQL做了进一步的操作，替换<code>#{}</code>为<code>?</code>。我们知道Mybatis会为静态SQL创建<code>RawSqlSource</code>对象。而这个替换操作就是在这里面发生的。</p>
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">RawSqlSource</span><span class="hljs-params">(Configuration configuration, String sql, Class&lt;?&gt; parameterType)</span> </span>&#123;
+  SqlSourceBuilder sqlSourceParser = <span class="hljs-keyword">new</span> SqlSourceBuilder(configuration);
+  Class&lt;?&gt; clazz = parameterType == null ? Object.class : parameterType;
+  <span class="hljs-comment">// 解析SqlSource</span>
+  sqlSource = sqlSourceParser.parse(sql, clazz, <span class="hljs-keyword">new</span> HashMap&lt;&gt;());
+&#125;</code></pre>
+
+
+
+<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> SqlSource <span class="hljs-title">parse</span><span class="hljs-params">(String originalSql, Class&lt;?&gt; parameterType, Map&lt;String, Object&gt; additionalParameters)</span> </span>&#123;
+  ParameterMappingTokenHandler handler = <span class="hljs-keyword">new</span> ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+  <span class="hljs-comment">// 将 #&#123;&#125; 替换成 ?</span>
+  GenericTokenParser parser = <span class="hljs-keyword">new</span> GenericTokenParser(<span class="hljs-string">"#&#123;"</span>, <span class="hljs-string">"&#125;"</span>, handler);
+  String sql = parser.parse(originalSql);
+  <span class="hljs-comment">// 最后创建StaticSqlSource的sqlSource</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> StaticSqlSource(configuration, sql, handler.getParameterMappings());
+&#125;</code></pre>
+
+<p>至此步骤 ③执行完成，动态SQL和静态SQL解析完成。</p>
+<h4 id="构建MappedStatement"><a href="#构建MappedStatement" class="headerlink" title="构建MappedStatement"></a>构建<code>MappedStatement</code></h4><p>一切准备工作都已完成，到了最后步骤④，在这个步骤中会将前面几个步骤产生的结果组装到一个叫MappedStatement对象中。</p>
+<p>最终将这个对象添加到Configuration中，可自行查看。</p>
+<pre><code class="hljs java">builderAssistant.addMappedStatement(id, sqlSource, statementType, sqlCommandType,
+    fetchSize, timeout, parameterMap, parameterTypeClass, resultMap, resultTypeClass,
+    resultSetTypeEnum, flushCache, useCache, resultOrdered,
+    keyGenerator, keyProperty, keyColumn, databaseId, langDriver, resultSets);</code></pre>
+
+
+
+<p>此致Mybatis整个启动加载的过程分析完毕。</p>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><p>在这个阶段我们清楚的认知了Mybatis对Mapper解析的过程，使用了<code>XMLStatementBuilder</code>来解析Mapper中的标签，<code>XMLScriptBuilder</code>来解析Mapper中的动态标签。</p>
+<p>使用<code>ResultMapResolver</code>来解析<code>ResultMap</code>标签，并将其每一个子节点映射成了<code>ResultMapping</code>对象。</p>
+<p>使用不同的<code>NodeHandler</code>来处理不同的动态标签，为不同动态标签创建不同的<code>SqlNode</code>对象。</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Java/">Java</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Orm/">Orm</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Mybatis/">Mybatis</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://zh.wikipedia.org/wiki/Wikipedia:CC_BY-SA_3.0%E5%8D%8F%E8%AE%AE%E6%96%87%E6%9C%AC" target="_blank" rel="nofollow noopener noopener">CC BY-SA 3.0协议</a> 。转载请注明出处！</p>
+              
+              
+                <div class="post-prevnext row">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2019/11/09/spring/02-spring-core-interface/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Ioc-Spring-核心接口</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2019/09/09/spring/01-spring-introduction/">
+                        <span class="hidden-mobile">Ioc-Spring-简介</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                
+  <div id="vcomments"></div>
+  <script type="text/javascript">
+    function loadValine() {
+      addScript('https://cdn.staticfile.org/valine/1.4.14/Valine.min.js', function () {
+        new Valine({
+          el: "#vcomments",
+          app_id: "aK6NK3wQgpzFrKt1b2gLWClF-gzGzoHsz",
+          app_key: "dyu33pNKDg5FqSn8boyV27jO",
+          placeholder: "说点什么",
+          path: window.location.pathname,
+          avatar: "identicon",
+          meta: ["nick","mail"],
+          pageSize: "10",
+          lang: "zh-CN",
+          highlight: true,
+          recordIP: false,
+          serverURLs: "",
+        });
+      });
+    }
+    waitElementVisible('vcomments', loadValine);
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://valine.js.org" target="_blank" rel="nofollow noopener noopener">comments
+      powered by Valine.</a></noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div id="tocbot"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+  </main>
+
+  
+    <a id="scroll-top-button" href="#" role="button">
+      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+    </a>
+  
+
+  
+    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+  
+
+  
+
+  
+
+  <footer class="mt-5">
+  <div class="text-center py-3">
+    <div>
+      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+      <i class="iconfont icon-love"></i>
+      <a href="https://doc.io-better.cn" target="_blank" rel="nofollow noopener">
+        <span>IO.BETTER</span></a>
+    </div>
+    
+
+    
+
+    
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
+<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/main.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
+  <script  src="/js/clipboard-use.js" ></script>
+
+
+
+
+
+
+
+  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script>
+    $(document).ready(function () {
+      var boardCtn = $('#board-ctn');
+      var boardTop = boardCtn.offset().top;
+
+      tocbot.init({
+        tocSelector: '#tocbot',
+        contentSelector: '#post-body',
+        headingSelector: 'h1,h2,h3,h4,h5,h6',
+        linkClass: 'tocbot-link',
+        activeLinkClass: 'tocbot-active-link',
+        listClass: 'tocbot-list',
+        isCollapsedClass: 'tocbot-is-collapsed',
+        collapsibleClass: 'tocbot-is-collapsible',
+        collapseDepth: 0,
+        scrollSmooth: true,
+        headingsOffset: -boardTop
+      });
+      if ($('.toc-list-item').length > 0) {
+        $('#toc').css('visibility', 'visible');
+      }
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
+  <script>
+    var typed = new Typed('#subtitle', {
+      strings: [
+        '  ',
+        "Mybaits 启动加载&nbsp;",
+      ],
+      cursorChar: "_",
+      typeSpeed: 70,
+      loop: false,
+    });
+    typed.stop();
+    $(document).ready(function () {
+      $(".typed-cursor").addClass("h2");
+      typed.start();
+    });
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
+  <script>
+    anchors.options = {
+      placement: "right",
+      visible: "hover",
+      
+    };
+    var el = "h1,h2,h3,h4,h5,h6".split(",");
+    var res = [];
+    for (item of el) {
+      res.push(".markdown-body > " + item)
+    }
+    anchors.add(res.join(", "))
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    var path = "/local-search.xml";
+    var inputArea = document.querySelector("#local-search-input");
+    inputArea.onclick = function () {
+      searchFunc(path, 'local-search-input', 'local-search-result');
+      this.onclick = null
+    }
+  </script>
+
+
+
+  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <script>
+    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
+      function () {
+        var element = document.createElement('a');
+        $(element).attr('data-fancybox', 'images');
+        $(element).attr('href', $(this).attr('src'));
+        $(this).wrap(element);
+      }
+    );
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
