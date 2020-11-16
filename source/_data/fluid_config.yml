@@ -262,7 +262,7 @@ post:  # 部分配置同时控制自定义页面，注意备注
 utterances:
   repo: io-better/doc.io-better.cn.comment
   issue_term: title
-  label: utterances
+  label: doc.io-better.cn
   theme: github-light
   theme_dark: github-dark
   crossorigin: anonymous
