@@ -16,7 +16,7 @@
       locale: '<%= theme.remark42.locale %>'
     };
 
-    function loadRemark42() {
+    Fluid.utils.waitElementVisible('remark42', function() {
       (function (c) {
         for (var i = 0; i < c.length; i++) {
           var d = document, s = d.createElement('script');
@@ -24,9 +24,8 @@
           s.defer = true;
           (d.head || d.body).appendChild(s);
         }
-      })(remark_config.components || [ 'embed' ]);
-    }
-
-    waitElementVisible('remark42', loadRemark42);
+      })(remark_config.components || ['embed']);
+    });
   </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
 <% } %>

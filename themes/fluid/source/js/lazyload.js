@@ -1,5 +1,6 @@
-// eslint-disable-next-line no-unused-expressions
-!(function(window, document) {
+/* global Debouncer */
+
+(function(window, document) {
   var runningOnBrowser = typeof window !== 'undefined';
   var supportsIntersectionObserver = runningOnBrowser && 'IntersectionObserver' in window;
 
@@ -13,7 +14,11 @@
       changes.forEach(({ target, isIntersecting }) => {
         if (!isIntersecting) return;
         target.setAttribute('srcset', target.src);
-        target.onload = target.onerror = () => io.unobserve(target);
+        const oldLoad = target.onload;
+        target.onload = function() {
+          io.unobserve(target);
+          oldLoad && oldLoad();
+        };
       });
     }, {
       threshold : [0],
@@ -40,7 +45,6 @@
       img.srcset = src;
     }
 
-    // eslint-disable-next-line no-undef
     var lazyLoader = new Debouncer(processImages);
 
     // eslint-disable-next-line no-inner-declarations

@@ -140,7 +140,9 @@ scroll_down_arrow:  # 向下滚动的箭头
   banner_height_limit: 90  # 头图高度不小于指定比例，才显示箭头
   scroll_after_turning_page: true  # 翻页后自动滚动
 
-banner_parallax: true  # 头图滚动视差
+# banner_parallax:   # 头图滚动视差
+banner:
+  parallax: true
 
 
 #---------------------------
@@ -148,6 +150,13 @@ banner_parallax: true  # 头图滚动视差
 # Footer
 #---------------------------
 footer:
+  # 页脚第一行文字的 HTML，建议保留 Fluid 的链接，用于向更多人推广本主题
+  # HTML of the first line of the footer, it is recommended to keep the Fluid link to promote this theme to more people
+  content: '
+    <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
+    <i class="iconfont icon-love"></i>
+    <a href="https://github.com/io-better?tab=repositories" target="_blank" rel="nofollow noopener"><span>Github</span></a>
+  '
   statistics:  # 展示网站的 PV、UV 统计数
     enable: false
     source: "busuanzi"  # 统计数据来源，可选：busuanzi | leancloud，使用 leancloud 需要在 web_analytics 中设置 api 参数，使用 busuanzi 注意可能间歇抽风
