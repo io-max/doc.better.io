@@ -41,7 +41,7 @@ code:
 
   highlight:
     enable: true
-    line_number: true
+    line_number: false
     lib: "highlightjs"
     highlightjs:
       style: "Github Gist"
