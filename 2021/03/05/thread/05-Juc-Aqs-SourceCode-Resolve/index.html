@@ -1,0 +1,1166 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  
+    <meta name="description" content="该文章主要讲述 Java 中 Juc 包下的 AbstractQueuedSynchronizer主要讲述 AQS 的设计及其独占模式和共享模式的获取和释放流程">
+  
+  <meta name="author" content="Better.Chen">
+  <meta name="keywords" content="">
+  
+  <title>Juc-AQS 源码分析 - IO.BETTER的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"doc.io-better.cn","root":"/","version":"1.8.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>IO.BETTER</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/back.webp') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Juc-AQS 源码分析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-03-05 09:44" pubdate>
+        2021年3月5日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      5.8k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      74
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Juc-AQS 源码分析</h1>
+            
+            <div class="markdown-body">
+              <p>该文章主要讲述 Java 中 Juc 包下的 AbstractQueuedSynchronizer<br>主要讲述 AQS 的设计及其独占模式和共享模式的获取和释放流程</p>
+<span id="more"></span>
+
+<h2 id="本章简介"><a href="#本章简介" class="headerlink" title="本章简介"></a>本章简介</h2><blockquote>
+<p>本章主要讲述 JUC 包下的 AQS 的设计与现实, 同时了解 AQS 中独占和共享模式的运转原理和机制</p>
+<ol>
+<li>AQS 的设计和实现</li>
+<li>AQS 中队列介绍及其变体</li>
+<li>AQS 中独占和共享模式的源代码分析</li>
+</ol>
+</blockquote>
+<h2 id="AbstractOwnableSynchronizer"><a href="#AbstractOwnableSynchronizer" class="headerlink" title="AbstractOwnableSynchronizer"></a>AbstractOwnableSynchronizer</h2><p>此类为AbstractQueuedSynchronizer的父类,  一个同步器框架有可能在一个时刻被某一个线程独占，<code>AbstractOwnableSynchronizer</code>就是为所有的同步器实现和锁相关实现提供了基础的保存、获取和设置独占线程的功能.</p>
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">/**</span>
+<span class="hljs-comment"> * 一个线程可以独占的同步器,  此类提供了创建锁和相关的同步器（可能涉及所有权概念）的基础</span>
+<span class="hljs-comment"> *</span>
+<span class="hljs-comment"> * AbstractOwnableSynchronizer 类本身并不管理或使用此信息。 </span>
+<span class="hljs-comment"> * 但是，子类和工具可以使用适当维护的值来帮助控,制和监视访问并提供诊断。</span>
+<span class="hljs-comment"> */</span>
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">AbstractOwnableSynchronizer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">java</span>.<span class="hljs-title">io</span>.<span class="hljs-title">Serializable</span> </span>&#123;
+
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> serialVersionUID = <span class="hljs-number">3737899427754241961L</span>;
+
+  <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractOwnableSynchronizer</span><span class="hljs-params">()</span> </span>&#123; &#125;
+
+  <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 独占模式同步的当前所有者</span>
+<span class="hljs-comment">    */</span>
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">transient</span> Thread exclusiveOwnerThread;
+
+  <span class="hljs-comment">/**</span>
+<span class="hljs-comment">    * 设置当前拥有独占访问权的线程</span>
+<span class="hljs-comment">    * null参数表示没有线程拥有访问权限, 否则, 此方法不会强加任何同步或&#123;<span class="hljs-doctag">@code</span> volatile&#125;字段访问</span>
+<span class="hljs-comment">    */</span>
+  <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setExclusiveOwnerThread</span><span class="hljs-params">(Thread thread)</span> </span>&#123;
+    exclusiveOwnerThread = thread;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> Thread <span class="hljs-title">getExclusiveOwnerThread</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">return</span> exclusiveOwnerThread;
+  &#125;
+&#125;</code></pre></div>
+
+
+
+<h2 id="AbstractQueuedSynchronizer"><a href="#AbstractQueuedSynchronizer" class="headerlink" title="AbstractQueuedSynchronizer"></a><code>AbstractQueuedSynchronizer</code></h2><p>Juc 包下的多数同步器都是基于<code>AbstractQueuedSynchronizer（简称 AQS）</code>框架实现的，AQS为<code>同步状态</code>的<code>原子性管理</code>、<code>线程的阻塞</code>和<code>解除阻塞</code>以及<code>排队</code>提供了一种通用的机制。</p>
+<h3 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h3><p>同步器一般包含两种方法，一种是<code>acquire</code>，另一种是<code>release</code>。acquire操作阻塞调用的线程，直到或除非同步状态允许其继续执行。而release操作则是通过某种方式改变同步状态，使得一或多个被acquire阻塞的线程继续执行。</p>
+<p>但是 Juc 包中不同的同步器其相应的 API 页不相，<code>Lock.lock，Semaphore.acquire，CountDownLatch.await</code>（但本质都是<code>acquire</code>或<code>release</code>操作），但都支持下面的操作：</p>
+<ul>
+<li>阻塞和非阻塞同步</li>
+<li>可选的超时设置，让调用者可以放弃等待</li>
+<li>通过中断实现任务取消，通常分为两个版本，一个<code>acquire</code>可取消，而另一个不可以。</li>
+</ul>
+<p>同步器的实现根据其状态分为两种：<code>独占状态</code>和<code>共享状态</code>。</p>
+<ul>
+<li>独占状态：同步器在同一时间允许一个线程执行（<code>Lock</code>）</li>
+<li>共享状态：同步器在同一时间允许多个线程执行（<code>Semaphore</code>）</li>
+</ul>
+<h3 id="设计与实现"><a href="#设计与实现" class="headerlink" title="设计与实现"></a>设计与实现</h3><p><code>acquire</code>和<code>release</code>简单的伪代码实现：</p>
+<p><code>acquire</code>操作：</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">while</span> (synchronization state does not allow acquire) &#123;
+    enqueue current thread <span class="hljs-keyword">if</span> not already queued;
+    possibly block current thread;
+&#125;
+dequeue current thread <span class="hljs-keyword">if</span> it was queued;</code></pre></div>
+
+<p><code>release</code>操作：</p>
+<div class="code-wrapper"><pre><code class="hljs java">update synchronization state;
+<span class="hljs-keyword">if</span> (state may permit a blocked thread to acquire)
+    unblock one or more queued threads;</code></pre></div>
+
+<p>实现上面的操作，需要下面三个操作：</p>
+<ul>
+<li>同步状态的原子性管理；</li>
+<li>线程的阻塞与解除阻塞；</li>
+<li>队列的管理；</li>
+</ul>
+<h4 id="同步状态"><a href="#同步状态" class="headerlink" title="同步状态"></a>同步状态</h4><p>AQS类使用单个<code>int</code>（32位）来保存同步状态，并暴露出<code>getState</code>、<code>setState</code>以及<code>compareAndSet</code>操作来读取和更新这个状态。</p>
+<p>基于AQS的具体实现类必须根据暴露出的状态相关的方法定义<code>tryAcquire</code>和<code>tryRelease</code>方法，以控制<code>acquire</code>和<code>release</code>操作。当同步状态满足时，<code>tryAcquire</code>方法必须返回<code>true</code>，而当新的同步状态允许后续<code>acquire</code>时，<code>tryRelease</code>方法也必须返回<code>true</code>。这些方法都接受一个<code>int</code>类型的参数用于传递想要的状态。</p>
+<h4 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h4><p>Juc包中提供了一个<code>LockSupport</code>类，其<code>LockSupport.park</code>和<code>LockSupport.unpark</code>用于替换传统的 <code>Thread.suspend</code>和 <code>Thread.resume</code>（同一产生死锁），<code>LockSupport.unpark</code>方法被提前调用也是可以的。</p>
+<p><code>LockSupport.unpark</code>的调用是没有被计数的，因此在一个<code>park</code>调用前多次调用<code>unpark</code>方法只会解除一个<code>park</code>操作。</p>
+<p>另外，它们作用于每个线程而不是每个同步器。一个线程在一个新的同步器上调用park操作可能会立即返回，因为在此之前可能有“剩余的”<code>unpark</code>操作。</p>
+<p>但是，在缺少一个<code>unpark</code>操作时，下一次调用<code>park</code>就会阻塞。</p>
+<h4 id="队列"><a href="#队列" class="headerlink" title="队列"></a>队列</h4><p>整个框架的关键就是如何管理被阻塞的线程的队列，该队列是严格的FIFO队列，因此，框架不支持基于优先级的同步。</p>
+<p>同步队列的最佳选择是自身没有使用底层锁来构造的非阻塞数据结构，已知 MCS 和 CLH 两种锁队列，但在 AQS 中使用了 CLH 锁队列，因为CLH 更容易实现<code>超时</code>和<code>取消</code>功能。AQS 基于 CLH 进行了修改和 CLH有较大的出入。</p>
+<p><img src="http://ifeve.com/wp-content/uploads/2013/01/CLHNode.png" srcset="/img/loading.gif" alt=""></p>
+<p>第一个对CLH队列主要的修改是添加了 next 字段，来用于唤醒后继节点</p>
+<p>第二个对CLH队列主要的修改是将每个节点都有的状态字段用于控制阻塞而非自旋。</p>
+<p>而AQS中同步队列的基础实现是其内部类<code>Node</code></p>
+<h5 id="Node"><a href="#Node" class="headerlink" title="Node"></a>Node</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span> </span>&#123;
+
+  <span class="hljs-comment">// 标记共享模式</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Node SHARED = <span class="hljs-keyword">new</span> Node();
+
+  <span class="hljs-comment">// 标记排他模式</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Node EXCLUSIVE = <span class="hljs-keyword">null</span>;
+
+  <span class="hljs-comment">// 取消状态</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CANCELLED = <span class="hljs-number">1</span>;
+
+  <span class="hljs-comment">//表示后续节点需要释放</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> SIGNAL = -<span class="hljs-number">1</span>;
+
+  <span class="hljs-comment">// 节点出去等待状态</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> CONDITION = -<span class="hljs-number">2</span>;
+
+  <span class="hljs-comment">// 下一个acquireShared应该无条件传播</span>
+  <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> PROPAGATE = -<span class="hljs-number">3</span>;
+
+  <span class="hljs-comment">// 状态字段</span>
+  <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">int</span> waitStatus;
+  
+  <span class="hljs-comment">// 前继节点, 在入队期间分配，并且仅在出队时将其清空, 前置节点取消时, 会短路</span>
+  <span class="hljs-keyword">volatile</span> Node prev;
+
+  <span class="hljs-comment">// 前继节点, 在排队过程中分配，在绕过取消的前任对象时进行调整，并在出队时清零</span>
+  <span class="hljs-comment">// 被取消节点的next字段设置为指向节点本身而不是null</span>
+  <span class="hljs-keyword">volatile</span> Node next;
+
+  <span class="hljs-comment">// 使该节点排队的线程。在构造上初始化，使用后消失</span>
+  <span class="hljs-keyword">volatile</span> Thread thread;
+
+  <span class="hljs-comment">// 链接到等待条件的下一个节点，或者链接到特殊值SHARED</span>
+  <span class="hljs-comment">// 由于条件队列仅在以独占模式保存时才被访问，因此我们只需要一个简单的链接队列即可在节点等待条件时保存节点。</span>
+  <span class="hljs-comment">// 然后将它们转移到队列中以重新获取</span>
+  <span class="hljs-comment">// 由于条件只能是互斥的，因此我们使用特殊值来表示共享模式来保存字段</span>
+  <span class="hljs-comment">// 下一个等待节点</span>
+  Node nextWaiter;
+
+  Node() &#123;    <span class="hljs-comment">// Used to establish initial head or SHARED marker</span>
+  &#125;
+
+  Node(Thread thread, Node mode) &#123;     <span class="hljs-comment">// Used by addWaiter</span>
+    <span class="hljs-keyword">this</span>.nextWaiter = mode;
+    <span class="hljs-keyword">this</span>.thread = thread;
+  &#125;
+
+  Node(Thread thread, <span class="hljs-keyword">int</span> waitStatus) &#123; <span class="hljs-comment">// Used by Condition</span>
+    <span class="hljs-keyword">this</span>.waitStatus = waitStatus;
+    <span class="hljs-keyword">this</span>.thread = thread;
+  &#125;
+
+  <span class="hljs-comment">// 返回ture表示当前节点处于共享模式等待</span>
+  <span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isShared</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">return</span> nextWaiter == SHARED;
+  &#125;
+
+  <span class="hljs-comment">// 返回前一个节点, 如果为null抛出空指针异常</span>
+  <span class="hljs-function"><span class="hljs-keyword">final</span> Node <span class="hljs-title">predecessor</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> NullPointerException </span>&#123;
+    Node p = prev;
+    <span class="hljs-keyword">if</span> (p == <span class="hljs-keyword">null</span>)
+      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NullPointerException();
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">return</span> p;
+  &#125;
+&#125;</code></pre></div>
+
+<p><code>waitStatus</code>的取值:</p>
+<ul>
+<li><code>CANCELLED</code>: 由于超时或中断导致该节点被取消,被取消节点的线程永远不会再次阻塞</li>
+<li><code>CONDITION</code>: 该节点当前在<code>条件队列</code>中, 在传输之前, 它不会用作<code>同步队列</code>节点, 此时状态将设置为<code>0</code>.</li>
+<li><code>SIGNAL</code>: 当前节点的后继节点被阻塞, 如果当前节点释放或取消时必须唤醒其后继节点</li>
+<li><code>PROPAGATE</code>:  此状态值通常只设置到调用了<code>doReleaseShared()</code>方法的头节点，确保<code>releaseShared()</code>方法的调用可以传播到其他的所有节点，简单理解就是共享模式下节点释放的传递标记。</li>
+</ul>
+<p>非负值表示节点不需要发信号, 对于常规同步节点，该字段初始化为0, 对于条件节点，该字段初始化为CONDITION<br>使用CAS对其进行修改</p>
+<p><code>nextWaiter</code>该字段字面意思是:下一个等待节点，其实有三个取值:</p>
+<ul>
+<li><code>Node.EXCLUSIVE</code>: 独占模式</li>
+<li><code>Node.SHARED</code>: 共享模式</li>
+<li>其他值: <strong>代表Condition等待队列中当前节点的下一个等待节点</strong></li>
+</ul>
+<h2 id="队列变体"><a href="#队列变体" class="headerlink" title="队列变体"></a>队列变体</h2><p>知道了AQS 的队列是使用的CLH队列的变体, 所以有必要看看 CLH 和 MCS 两个队列.</p>
+<h3 id="CLH-锁队列"><a href="#CLH-锁队列" class="headerlink" title="CLH 锁队列"></a>CLH 锁队列</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">_CLH_Lock</span> </span>&#123;
+
+  <span class="hljs-keyword">final</span> AtomicReference&lt;Node&gt; tail = <span class="hljs-keyword">new</span> AtomicReference&lt;&gt;(<span class="hljs-keyword">new</span> Node());
+  <span class="hljs-keyword">final</span> ThreadLocal&lt;Node&gt; current;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">_CLH_Lock</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.current = <span class="hljs-keyword">new</span> ThreadLocal&lt;Node&gt;() &#123;
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> Node <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>&#123;
+        Node node = <span class="hljs-keyword">new</span> Node();
+        System.out.println(<span class="hljs-string">&quot;构造器: &quot;</span> + Thread.currentThread().getName() + <span class="hljs-string">&quot;-&quot;</span> + node);
+        <span class="hljs-keyword">return</span> node;
+      &#125;
+    &#125;;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;
+
+    _CLH_Lock lock = <span class="hljs-keyword">new</span> _CLH_Lock();
+
+    Runnable runnable = () -&gt; &#123;
+      <span class="hljs-keyword">try</span> &#123;
+        lock.lock();
+        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;获取到了锁&quot;</span>);
+        TimeUnit.SECONDS.sleep(<span class="hljs-number">5</span>);
+        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;释放到了锁&quot;</span>);
+        lock.unlock();
+      &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+        e.printStackTrace();
+      &#125;
+    &#125;;
+
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 A&quot;</span>).start();
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 B&quot;</span>).start();
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 C&quot;</span>).start();
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
+
+    Node own = <span class="hljs-keyword">this</span>.current.get();
+    System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;-&quot;</span> + own);
+    own.locked = <span class="hljs-keyword">true</span>;
+    Node preNode = tail.getAndSet(own);
+
+    <span class="hljs-keyword">while</span> (preNode.locked) &#123;
+      System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;开始自旋....&quot;</span>);
+      TimeUnit.SECONDS.sleep(<span class="hljs-number">2</span>);
+    &#125;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unlock</span><span class="hljs-params">()</span> </span>&#123;
+    current.get().locked = <span class="hljs-keyword">false</span>;
+  &#125;
+
+  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span> </span>&#123;
+    <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">boolean</span> locked = <span class="hljs-keyword">false</span>;
+  &#125;
+&#125;
+</code></pre></div>
+
+<p>CLH 队列类似于一个伪链表，每个线程在通过 CAS 操作替换 <code>tail</code> 节点引用后，拿到上一个线程节点引用，不断循环检测该线程节点中的 blocked 字段（这个操作就是自旋）。</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20200831111943196.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="MCS锁队列"><a href="#MCS锁队列" class="headerlink" title="MCS锁队列"></a>MCS锁队列</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">_MCS_Lock</span> </span>&#123;
+
+  <span class="hljs-keyword">final</span> AtomicReference&lt;Node&gt; tail = <span class="hljs-keyword">new</span> AtomicReference&lt;&gt;(<span class="hljs-keyword">null</span>);
+  ThreadLocal&lt;Node&gt; current;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">_MCS_Lock</span><span class="hljs-params">()</span> </span>&#123;
+    <span class="hljs-keyword">this</span>.current = <span class="hljs-keyword">new</span> ThreadLocal&lt;Node&gt;() &#123;
+      <span class="hljs-meta">@Override</span>
+      <span class="hljs-function"><span class="hljs-keyword">protected</span> Node <span class="hljs-title">initialValue</span><span class="hljs-params">()</span> </span>&#123;
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Node();
+      &#125;
+    &#125;;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">lock</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
+
+    Node own = current.get();
+
+    Node preNode = tail.getAndSet(own);
+
+    <span class="hljs-keyword">if</span> (Objects.nonNull(preNode)) &#123;
+      preNode.next = own;
+      own.locked = <span class="hljs-keyword">true</span>;
+      <span class="hljs-keyword">while</span> (own.locked) &#123;
+        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;开始自旋....&quot;</span>);
+        TimeUnit.SECONDS.sleep(<span class="hljs-number">2</span>);
+      &#125;
+    &#125;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unlock</span><span class="hljs-params">()</span> </span>&#123;
+
+    Node own = current.get();
+    <span class="hljs-keyword">if</span> (Objects.isNull(own.next)) &#123;
+      <span class="hljs-comment">// CAS操作失败，说明当前节点后面新加入了节点</span>
+      <span class="hljs-keyword">if</span> (tail.compareAndSet(own, <span class="hljs-keyword">null</span>)) &#123;
+        <span class="hljs-keyword">return</span>;
+      &#125;
+      <span class="hljs-comment">// 条件不成立，执行下面的解锁流程代码</span>
+      <span class="hljs-keyword">while</span> (own.next == <span class="hljs-keyword">null</span>) &#123;
+      &#125;
+    &#125;
+    own.next.locked = <span class="hljs-keyword">false</span>;
+    own.next = <span class="hljs-keyword">null</span>;
+  &#125;
+
+  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Node</span> </span>&#123;
+    <span class="hljs-keyword">volatile</span> Node next;
+    <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">boolean</span> locked;
+  &#125;
+
+  <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;
+    _MCS_Lock lock = <span class="hljs-keyword">new</span> _MCS_Lock();
+
+    Runnable runnable = () -&gt; &#123;
+      <span class="hljs-keyword">try</span> &#123;
+        lock.lock();
+        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;获取到了锁&quot;</span>);
+        TimeUnit.SECONDS.sleep(<span class="hljs-number">5</span>);
+        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">&quot;释放到了锁&quot;</span>);
+        lock.unlock();
+      &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;
+        e.printStackTrace();
+      &#125;
+    &#125;;
+
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 A&quot;</span>).start();
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 B&quot;</span>).start();
+    TimeUnit.SECONDS.sleep(<span class="hljs-number">3</span>);
+    <span class="hljs-keyword">new</span> Thread(runnable, <span class="hljs-string">&quot;线程 C&quot;</span>).start();
+  &#125;
+&#125;</code></pre></div>
+
+<p>MCS 是一个真正的链表通过 <code>next</code> 字段来关联下一个线程节点，但是相对于 CLH 它的 CAS 操作多了</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20200831144343389.png" srcset="/img/loading.gif" alt=""></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>CLH 适用于SMP 系统架构，不适用于NUMA架构(内存分隔)，如果前一个节点的内存过远会导致性能下降。</p>
+<p>CLH 对比 MCS: </p>
+<p>（1）从代码实现来看，CLH比MCS要简单得多。</p>
+<p>（2）从自旋的条件来看，CLH依靠前驱节点自旋，而MCS是依靠自身自旋。</p>
+<p>（3）从链表队列来看，CLH的队列是隐式的，MCS的队列是物理存在的，通过 next 字段。</p>
+<p>（4）CLH 锁释放时只需要改变自己的属性，MCS锁释放则需要改变后继节点的属性。</p>
+<p>（5）CLH 适合CPU个数不多的计算机硬件架构上，MCS则适合拥有很多CPU的硬件架构上</p>
+<p>（6）CLH和MCS实现的自旋锁都是不可重入的</p>
+<h2 id="独占模式"><a href="#独占模式" class="headerlink" title="独占模式"></a>独占模式</h2><h3 id="获取"><a href="#获取" class="headerlink" title="获取"></a>获取</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-comment">// 如果tryAcquire获取失败, 且添加队列</span>
+  <span class="hljs-keyword">if</span> (!tryAcquire(arg) &amp;&amp; acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+    selfInterrupt();
+&#125;</code></pre></div>
+
+<p><code>acquire</code>方法在独占模式下修改<code>同步状态</code>, 会至少调用一次<code>tryAcquire</code>方法, 如果<code>tryAcquire</code>返回<code>true</code>代表状态修改成功, 反之则尝试调用<code>acquireQueued</code>方法入队. </p>
+<p><code>addWaiter</code>是入队操作, 而<code>acquireQueued</code>则是从队列中获取操作.</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 1. 获取到 tail 节点, 如果不为空,则调用 cas 将 node 入队</span>
+<span class="hljs-comment">// 2. 如果为空,则调用 enq 方法初始化队列,且将 node 节点入队</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">addWaiter</span><span class="hljs-params">(Node mode)</span> </span>&#123;
+  Node node = <span class="hljs-keyword">new</span> Node(Thread.currentThread(), mode);
+  Node pred = tail;
+  <span class="hljs-keyword">if</span> (pred != <span class="hljs-keyword">null</span>) &#123;
+    node.prev = pred;
+    <span class="hljs-comment">// 入队操作</span>
+    <span class="hljs-keyword">if</span> (compareAndSetTail(pred, node)) &#123;
+      pred.next = node;
+      <span class="hljs-keyword">return</span> node;
+    &#125;
+  &#125;
+  <span class="hljs-comment">// 队列为空,则进行初始化</span>
+  enq(node);
+  <span class="hljs-keyword">return</span> node;
+&#125;</code></pre></div>
+
+<h4 id="队列初始化"><a href="#队列初始化" class="headerlink" title="队列初始化"></a>队列初始化</h4><p>在调用<code>addWaiter</code>进行入队操作时, 可能会出现队列为初始化的情况, 即<code>pred == null</code>.此时调用了 <code>enq</code> 来对队列进行初始化</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Node <span class="hljs-title">enq</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Node node)</span> </span>&#123;
+  <span class="hljs-keyword">for</span> (;;) &#123;
+    Node t = tail;
+    <span class="hljs-keyword">if</span> (t == <span class="hljs-keyword">null</span>) &#123; <span class="hljs-comment">// 如果为空,则进行处处华</span>
+      <span class="hljs-keyword">if</span> (compareAndSetHead(<span class="hljs-keyword">new</span> Node()))
+        tail = head;
+    &#125; 
+    <span class="hljs-comment">// 不为空</span>
+    <span class="hljs-keyword">else</span> &#123;
+      node.prev = t; <span class="hljs-comment">// 先设置尾节点的前置节点,保证队列的完整性</span>
+      <span class="hljs-keyword">if</span> (compareAndSetTail(t, node)) &#123; <span class="hljs-comment">// 在 CAS 设置尾节点</span>
+        t.next = node;
+        <span class="hljs-keyword">return</span> t;
+      &#125;
+    &#125;
+  &#125;
+&#125;</code></pre></div>
+
+<h4 id="自旋获取"><a href="#自旋获取" class="headerlink" title="自旋获取"></a>自旋获取</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 入队成功后,再次从队列中获取锁</span>
+<span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">acquireQueued</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Node node, <span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-keyword">boolean</span> failed = <span class="hljs-keyword">true</span>;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-keyword">boolean</span> interrupted = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+      <span class="hljs-comment">// step1: 获取到当前节点的前置节点</span>
+      <span class="hljs-keyword">final</span> Node p = node.predecessor();
+      <span class="hljs-comment">// step2: 如果前置节点是头节点,则说明前置节点已经获取到锁, 且再次调用tryAcquire方法获取锁</span>
+      <span class="hljs-keyword">if</span> (p == head &amp;&amp; tryAcquire(arg)) &#123;
+        <span class="hljs-comment">// 成功,说明前置节点已经释放了搜</span>
+        setHead(node);
+        p.next = <span class="hljs-keyword">null</span>; <span class="hljs-comment">// help GC</span>
+        failed = <span class="hljs-keyword">false</span>;
+        <span class="hljs-keyword">return</span> interrupted;
+      &#125;
+      <span class="hljs-comment">// step3: 此时前置节点可能还未释放锁, 则判断是否应该阻塞当前节点</span>
+      <span class="hljs-keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt())
+        interrupted = <span class="hljs-keyword">true</span>;
+    &#125;
+  &#125; <span class="hljs-keyword">finally</span> &#123;
+    <span class="hljs-keyword">if</span> (failed)
+      cancelAcquire(node);
+  &#125;
+&#125;</code></pre></div>
+
+<p>在自旋时, 前置节点的状态: </p>
+<ol>
+<li>waitStatus=0: 说明当前节点可以继续自旋, 说不定下次自旋就能获取到锁</li>
+<li>waitStatus&gt;0: 说明前置节点已经取消, 更新当前节点的前置节点, 并进行下次自旋</li>
+<li>waitStatus&lt;0: 说明当前节点可以阻塞, 这个状态可能是当前节点在执行<code>shouldParkAfterFailedAcquire</code>修改的.</li>
+</ol>
+<h4 id="获取失败后更新状态"><a href="#获取失败后更新状态" class="headerlink" title="获取失败后更新状态"></a>获取失败后更新状态</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">shouldParkAfterFailedAcquire</span><span class="hljs-params">(Node pred, Node node)</span> </span>&#123;
+  <span class="hljs-keyword">int</span> ws = pred.waitStatus;
+  <span class="hljs-keyword">if</span> (ws == Node.SIGNAL) <span class="hljs-comment">// 前置状态为 SIGNAL,说明当前节点需要被唤醒, 可以安全的的被阻塞</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>; <span class="hljs-comment">// 返回 true,则会执行 parkAndCheckInterrupt 方法</span>
+	
+  <span class="hljs-comment">// 大于 0,说明前置节点已经取消, 则从前置节点向前查找,直到遇到未取消的节点,</span>
+  <span class="hljs-comment">// 将当前节点的 prev 指向为取消的节点</span>
+  <span class="hljs-keyword">if</span> (ws &gt; <span class="hljs-number">0</span>) &#123;
+    <span class="hljs-keyword">do</span> &#123;
+      <span class="hljs-comment">// 寻找未取消的前置节点</span>
+      node.prev = pred = pred.prev;
+    &#125; <span class="hljs-keyword">while</span> (pred.waitStatus &gt; <span class="hljs-number">0</span>);
+    <span class="hljs-comment">// 更新当前节点的 prev</span>
+    pred.next = node;
+  &#125; 
+  <span class="hljs-comment">// 此时状态只能是 0 或 PROPAGATE, 表明当前节点需要一个唤醒信号</span>
+  <span class="hljs-comment">// 而 PROPAGATE 是在共享模式下使用的, CONDITION 则是在条件队列中时的状态</span>
+  <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// 将前置节点状态更新成 SINGAL</span>
+    compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
+  &#125;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;</code></pre></div>
+
+
+
+<p><strong>当前节点的唤醒是保存在前置节点中的</strong></p>
+<h3 id="释放"><a href="#释放" class="headerlink" title="释放"></a>释放</h3><h4 id="源代码"><a href="#源代码" class="headerlink" title="源代码"></a>源代码</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">release</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (tryRelease(arg)) &#123;
+    Node h = head;
+    <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h.waitStatus != <span class="hljs-number">0</span>) <span class="hljs-comment">// 头节点不为空,且状态不等于0</span>
+      unparkSuccessor(h);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+  &#125;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;
+
+<span class="hljs-comment">// 唤醒后续节点</span>
+<span class="hljs-comment">// 回顾获取的代码, 在后续节点获取失败后可能会修改前置节点的状态(shouldParkAfterFailedAcquire方法)</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unparkSuccessor</span><span class="hljs-params">(Node node)</span> </span>&#123;
+
+  <span class="hljs-comment">// 如果状态为正数(可能需要唤醒)</span>
+  <span class="hljs-keyword">int</span> ws = node.waitStatus;
+  <span class="hljs-comment">// 此时waitStatus是SINGAL,</span>
+  <span class="hljs-keyword">if</span> (ws &lt; <span class="hljs-number">0</span>)
+    compareAndSetWaitStatus(node, ws, <span class="hljs-number">0</span>); <span class="hljs-comment">// 更新成 0, 利于后续节点获取锁</span>
+
+  <span class="hljs-comment">// 后继节点</span>
+  Node s = node.next;
+  <span class="hljs-comment">// 疑问: 后继节点为 null 或已取消为啥还要从尾节点开始遍历</span>
+  <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span> || s.waitStatus &gt; <span class="hljs-number">0</span>) &#123;
+    s = <span class="hljs-keyword">null</span>;
+    <span class="hljs-comment">// 当上面判断成立时的一瞬间, 可能有新节点入队了, 这么做就是为了避免新节点的加入,而被忽略</span>
+    <span class="hljs-keyword">for</span> (Node t = tail; t != <span class="hljs-keyword">null</span> &amp;&amp; t != node; t = t.prev)
+      <span class="hljs-keyword">if</span> (t.waitStatus &lt;= <span class="hljs-number">0</span>)
+        s = t;
+  &#125;
+  <span class="hljs-keyword">if</span> (s != <span class="hljs-keyword">null</span>)
+    <span class="hljs-comment">// 解锁后继线程</span>
+    LockSupport.unpark(s.thread);
+&#125;</code></pre></div>
+
+
+
+<h4 id="后继节点状态"><a href="#后继节点状态" class="headerlink" title="后继节点状态"></a>后继节点状态</h4><p>在执行释放时, 后继节点可能处于以下几种状态:</p>
+<ol>
+<li>已经阻塞.</li>
+<li>还在<code>acquireQueued</code>方法中执行自旋,还未阻塞.</li>
+<li>已经取消.</li>
+</ol>
+<h4 id="优化点"><a href="#优化点" class="headerlink" title="优化点"></a>优化点</h4><p>在<code>unparkSuccessor</code>中将当前节点的状态更新成了 0</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">if</span> (ws &lt; <span class="hljs-number">0</span>)
+    compareAndSetWaitStatus(node, ws, <span class="hljs-number">0</span>);</code></pre></div>
+
+<p>而后继节点在获取失败后可能在执行 spaf 将前置节点置为 SIGNAL</p>
+<div class="code-wrapper"><pre><code class="hljs java">compareAndSetWaitStatus(pred, ws, Node.SIGNAL);</code></pre></div>
+
+<p><strong>为什么这是个优化操作呢?</strong></p>
+<p>假设队列 : <code>A -&gt; B -&gt; C</code></p>
+<p>假设 B 已经自旋了一次(获取失败), 调用<code>spaf</code>方法将 A 的状态设置成了 SIGNAL, 进行下一次自旋, 此时 A 会有两种操作:</p>
+<ol>
+<li>调用release方法, 此时 A 的状态会变成 0, B 在下一次自旋后发现 A 的状态变成了 0, 则会继续自旋</li>
+<li>未调用release方法, 此时 A 的状态还是 SIGNAL(被 B 修改的), 此时 B 在下一次自旋后就可以被阻塞了</li>
+</ol>
+<p>这样可以加速锁的获取, 避免了一次没必要的 park. </p>
+<h3 id="取消获取"><a href="#取消获取" class="headerlink" title="取消获取"></a>取消获取</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">cancelAcquire</span><span class="hljs-params">(Node node)</span> </span>&#123;
+  <span class="hljs-comment">// 为空忽略</span>
+  <span class="hljs-keyword">if</span> (node == <span class="hljs-keyword">null</span>)
+    <span class="hljs-keyword">return</span>;
+	
+  node.thread = <span class="hljs-keyword">null</span>; <span class="hljs-comment">// 线程置为空</span>
+
+	<span class="hljs-comment">// 跳过取消的节点</span>
+  Node pred = node.prev;
+  <span class="hljs-keyword">while</span> (pred.waitStatus &gt; <span class="hljs-number">0</span>)
+    node.prev = pred = pred.prev;
+
+	<span class="hljs-comment">// 获取点未取消前置节点的前置节点</span>
+  Node predNext = pred.next;
+
+	<span class="hljs-comment">// 修改 ws</span>
+  node.waitStatus = Node.CANCELLED;
+
+	<span class="hljs-comment">// 如果是尾节点,则直接 CAS 更新</span>
+  <span class="hljs-keyword">if</span> (node == tail &amp;&amp; compareAndSetTail(node, pred)) &#123;
+    compareAndSetNext(pred, predNext, <span class="hljs-keyword">null</span>);
+  &#125; 
+  <span class="hljs-comment">// 非尾节点</span>
+  <span class="hljs-keyword">else</span> &#123;
+    <span class="hljs-comment">// If successor needs signal, try to set pred&#x27;s next-link</span>
+    <span class="hljs-comment">// so it will get one. Otherwise wake it up to propagate.</span>
+    <span class="hljs-keyword">int</span> ws;
+    <span class="hljs-keyword">if</span> (pred != head &amp;&amp;  <span class="hljs-comment">// 前置节点不是头节点</span>
+        ((ws = pred.waitStatus) == Node.SIGNAL || <span class="hljs-comment">// pred.ws = SIGNAL</span>
+         (ws &lt;= <span class="hljs-number">0</span> &amp;&amp; compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &amp;&amp; <span class="hljs-comment">// </span>
+        pred.thread != <span class="hljs-keyword">null</span>) &#123;
+      
+      Node next = node.next; <span class="hljs-comment">// 获取当前节点的后继节点</span>
+
+      <span class="hljs-keyword">if</span> (next != <span class="hljs-keyword">null</span> &amp;&amp; next.waitStatus &lt;= <span class="hljs-number">0</span>) <span class="hljs-comment">// 后继节点有效</span>
+        compareAndSetNext(pred, predNext, next); <span class="hljs-comment">// 将 pred 前置节点的 next 修改成 node.next</span>
+    &#125; 
+    <span class="hljs-comment">// 1. pred 为头节点s</span>
+    <span class="hljs-keyword">else</span> &#123;
+      unparkSuccessor(node);  <span class="hljs-comment">// 解锁后继者</span>
+    &#125;
+
+    node.next = node; <span class="hljs-comment">// help GC</span>
+  &#125;
+&#125;</code></pre></div>
+
+
+
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><h2 id="共享模式"><a href="#共享模式" class="headerlink" title="共享模式"></a>共享模式</h2><p>共享模式下的<code>获取</code>和<code>释放</code>和独占模式有一些区别, 共享模式下,锁是可以被多个线程锁持有的.</p>
+<p>下面的会涉及到源代码的分析, 再看每行代码时, 都要记住一点:<code>所有的方法都有可能并发执行</code></p>
+<h3 id="获取-1"><a href="#获取-1" class="headerlink" title="获取"></a>获取</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (tryAcquireShared(arg) &lt; <span class="hljs-number">0</span>)
+    doAcquireShared(arg);
+&#125;</code></pre></div>
+
+<p><code>tryAcquireShared</code>返回值有以下几种情况:</p>
+<ul>
+<li><code>&lt;0</code>: 表示获取失败</li>
+<li><code>=0</code>:表示获取成功,但是后继节点不能获取成功</li>
+<li><code>&gt;0</code>:表示获取成功</li>
+</ul>
+<h4 id="doAcquireShared"><a href="#doAcquireShared" class="headerlink" title="doAcquireShared"></a><code>doAcquireShared</code></h4><h5 id="源代码-1"><a href="#源代码-1" class="headerlink" title="源代码"></a>源代码</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 执行共享获取操作</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-comment">// step1: 入队</span>
+  <span class="hljs-keyword">final</span> Node node = addWaiter(Node.SHARED);
+  <span class="hljs-keyword">boolean</span> failed = <span class="hljs-keyword">true</span>;
+  <span class="hljs-keyword">try</span> &#123;
+    <span class="hljs-keyword">boolean</span> interrupted = <span class="hljs-keyword">false</span>;
+    <span class="hljs-keyword">for</span> (;;) &#123;
+      <span class="hljs-comment">// step2: 前继节点</span>
+      <span class="hljs-keyword">final</span> Node p = node.predecessor();
+      <span class="hljs-keyword">if</span> (p == head) &#123;
+        <span class="hljs-keyword">int</span> r = tryAcquireShared(arg);
+        <span class="hljs-keyword">if</span> (r &gt;= <span class="hljs-number">0</span>) &#123;
+					<span class="hljs-comment">// step2.1: 设置头节点并传播</span>
+          setHeadAndPropagate(node, r);
+        &#125;<span class="hljs-comment">// 忽略部分代码</span>
+      &#125;
+			<span class="hljs-comment">// step3: 修改当前节点状态,并根据状态阻塞</span>
+      <span class="hljs-keyword">if</span> (shouldParkAfterFailedAcquire(p, node) &amp;&amp; parkAndCheckInterrupt())
+        interrupted = <span class="hljs-keyword">true</span>;
+    &#125;
+  &#125; <span class="hljs-keyword">finally</span> &#123;
+    <span class="hljs-keyword">if</span> (failed)
+      cancelAcquire(node);
+  &#125;
+&#125;</code></pre></div>
+
+<h5 id="流程"><a href="#流程" class="headerlink" title="流程"></a>流程</h5><ol>
+<li>调用<code>addWaiter</code>进行入队操作, 只不过是共享模式</li>
+<li>判断前置节点是否是头节点<ol>
+<li>是头节点:  再次尝试获取, 如果成功, 调用<code>setHeadAndPropagate</code>方法传播, 反之执行步骤 3</li>
+<li>非头节点:  执行步骤 3</li>
+</ol>
+</li>
+<li>获取失败后, 根据前置节点状态 判断是否应该阻塞当前节点</li>
+</ol>
+<h5 id="setHeadAndPropagate"><a href="#setHeadAndPropagate" class="headerlink" title="setHeadAndPropagate"></a><code>setHeadAndPropagate</code></h5><p>我们知道只要当当前节点的前继节点为头节点且再次 <code>tryAcquireShared</code> 成功后再回执行 <code>shp</code> 方法</p>
+<p>注意: shp 是<code>setHeadAndPropagate</code>方法的简称</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// propagate 为 tryAcquireShared 的返回值</span>
+<span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setHeadAndPropagate</span><span class="hljs-params">(Node node, <span class="hljs-keyword">int</span> propagate)</span> </span>&#123;
+  Node h = head; 
+  setHead(node);
+	
+  <span class="hljs-keyword">if</span> (propagate &gt; <span class="hljs-number">0</span> || h == <span class="hljs-keyword">null</span> || h.waitStatus &lt; <span class="hljs-number">0</span> ||
+      (h = head) == <span class="hljs-keyword">null</span> || h.waitStatus &lt; <span class="hljs-number">0</span>) &#123;
+    Node s = node.next;  <span class="hljs-comment">// 获取后继节点</span>
+    <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span> || s.isShared())  <span class="hljs-comment">// 如果处于共享模式</span>
+      doReleaseShared();		<span class="hljs-comment">// 执行释放操作</span>
+  &#125;
+&#125;</code></pre></div>
+
+<p>调用 <code>setHead</code> 方法后, 此前的 <code>head</code> 已经不在队列中了</p>
+<p>如果 node.next 不为空且处于共享模式, 调用 <code>doReleaseShared()</code> 方法, 此方法在 <code>releaseShared</code> 会一起讲解</p>
+<h3 id="释放-1"><a href="#释放-1" class="headerlink" title="释放"></a>释放</h3><h4 id="源代码-2"><a href="#源代码-2" class="headerlink" title="源代码"></a>源代码</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">releaseShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> arg)</span> </span>&#123;
+  <span class="hljs-keyword">if</span> (tryReleaseShared(arg)) &#123;
+    doReleaseShared();
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;
+  &#125;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;
+&#125;</code></pre></div>
+
+<p>可以看到在调用了<code>tryReleaseShared</code>方法后,如果成功则会调用<code>doReleaseShared</code>, 这和上面<code>共享获取</code>时<code>setHeadAndPropagate</code>方法中调用的方法是一致的.</p>
+<h4 id="doReleaseShared"><a href="#doReleaseShared" class="headerlink" title="doReleaseShared"></a><code>doReleaseShared</code></h4><p>此时我们知道在 <code>acquireShared</code> 和 <code>releaseShared</code> 中都会调用此方法, 该方法至少会被一个节点调用两次.</p>
+<p>在分析这个方法前, 假设现在有三个节点为别是: <code>A, B, C</code> 且假设入队顺序是 <code>A -&gt; B -&gt; C</code></p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doReleaseShared</span><span class="hljs-params">()</span> </span>&#123;
+  <span class="hljs-comment">// 如果需要信号, 头节点通常将会以这种方式唤醒后继节点, 如果没有则将状态更新为PROPAGATE,以确保传播</span>
+  <span class="hljs-comment">// 此外，在执行此操作时，必须循环以防添加新节点。</span>
+  <span class="hljs-keyword">for</span> (;;) &#123;
+    Node h = head;
+    <span class="hljs-comment">// 该判断只能保证在此时此刻队列中至少有两个节点, 可能在执行下面的代码中,队列从可能就只有一个节点了</span>
+    <span class="hljs-keyword">if</span> (h != <span class="hljs-keyword">null</span> &amp;&amp; h != tail) &#123;
+      <span class="hljs-keyword">int</span> ws = h.waitStatus;
+      <span class="hljs-comment">// 疑问:A.ws为什么是 SIGNAL</span>
+      <span class="hljs-comment">// A 成为头节点, B 获取锁失败在执行 spaf 方法时修改</span>
+      <span class="hljs-keyword">if</span> (ws == Node.SIGNAL) &#123;
+        <span class="hljs-comment">// 疑问: 为什么会更新失败? </span>
+        <span class="hljs-comment">// B 在执行完 spaf 方法可能没阻塞, 再次自旋获取到锁了, 并成为了头节点, 所以造成此时A执行CAS失败</span>
+        <span class="hljs-comment">// 更新成 0 是为了加速后续节点在执行 spaf 后不被阻塞</span>
+        <span class="hljs-keyword">if</span> (!compareAndSetWaitStatus(h, Node.SIGNAL, <span class="hljs-number">0</span>)) &#123;
+          <span class="hljs-keyword">continue</span>;
+        &#125;
+        <span class="hljs-comment">// 解锁后继者</span>
+        unparkSuccessor(h);
+      &#125;
+      <span class="hljs-comment">// 后继节点不需要信号,则更新状态为PROPAGATE, 失败则自旋</span>
+      <span class="hljs-comment">// 疑问: 什么情况会进入此 else if</span>
+      <span class="hljs-comment">// A刚成为头节点(默认为 0), B执行 spaf 还未将 A.ws修改成 SIGNAL 此时 A 会进入 else if</span>
+      <span class="hljs-comment">// 疑问: compareAndSetWaitStatus(h, 0, Node.PROPAGATE)为什么失败?</span>
+      <span class="hljs-comment">// 当 ws==0 成立时,此时 B 在 spaf 将 A.ws 修改了 SIGNAL, 所以会失败</span>
+      <span class="hljs-comment">// 注意: 这个 else if 主要就是处理并预防有新节点加入</span>
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (ws == <span class="hljs-number">0</span> &amp;&amp; !compareAndSetWaitStatus(h, <span class="hljs-number">0</span>, Node.PROPAGATE))
+        <span class="hljs-keyword">continue</span>;
+    &#125;
+		<span class="hljs-comment">// 执行此判断的条件, 成功调用unparkSuccessor方法或队列中没有两个节点</span>
+    <span class="hljs-keyword">if</span> (h == head)
+      <span class="hljs-keyword">break</span>;
+  &#125;
+&#125;</code></pre></div>
+
+
+
+<h4 id="unparkSuccessor"><a href="#unparkSuccessor" class="headerlink" title="unparkSuccessor"></a><code>unparkSuccessor</code></h4><p>解锁后继线程, 该方法只有在 CAS 将 head.ws修改成 0 成功时才会执行</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">unparkSuccessor</span><span class="hljs-params">(Node node)</span> </span>&#123;
+  <span class="hljs-comment">/*</span>
+<span class="hljs-comment">     * If status is negative (i.e., possibly needing signal) try</span>
+<span class="hljs-comment">     * to clear in anticipation of signalling.  It is OK if this</span>
+<span class="hljs-comment">     * fails or if status is changed by waiting thread.</span>
+<span class="hljs-comment">     */</span>
+  <span class="hljs-keyword">int</span> ws = node.waitStatus;
+  <span class="hljs-keyword">if</span> (ws &lt; <span class="hljs-number">0</span>)
+    <span class="hljs-comment">// 疑问: 为什么要将 ws 更新成 0</span>
+    <span class="hljs-comment">// 后继线程在执行完 shp 没有被阻塞, 继续执行下次自旋, </span>
+    <span class="hljs-comment">// 下次在执行 shp 时后继节点发现前置节点的 ws改变了, 继续自旋, 避免了阻塞</span>
+    compareAndSetWaitStatus(node, ws, <span class="hljs-number">0</span>);  
+
+  <span class="hljs-comment">// 跳过取消节点</span>
+  Node s = node.next;
+  <span class="hljs-keyword">if</span> (s == <span class="hljs-keyword">null</span> || s.waitStatus &gt; <span class="hljs-number">0</span>) &#123;
+    s = <span class="hljs-keyword">null</span>;
+    <span class="hljs-keyword">for</span> (Node t = tail; t != <span class="hljs-keyword">null</span> &amp;&amp; t != node; t = t.prev)
+      <span class="hljs-keyword">if</span> (t.waitStatus &lt;= <span class="hljs-number">0</span>)
+        s = t;
+  &#125;
+  <span class="hljs-comment">// 不为空</span>
+  <span class="hljs-keyword">if</span> (s != <span class="hljs-keyword">null</span>)
+    <span class="hljs-comment">// 解锁线程, 则后继节点继续自旋, 获取锁</span>
+    LockSupport.unpark(s.thread);
+&#125;</code></pre></div>
+
+<h2 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a>总结</h2><p>至此 AQS 中独占和共享模式下的 acquire 和 release 操作的细节都已分析完毕, 了解 AQS 对学习JUC 包下的类非常有帮助, 如果看完本章还有疑惑, 可以查看一下其它博客. </p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/1187386">CLH 锁</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/dennyzhangdd/p/7218510.html">同步框架说明文档</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/micrari/p/6937995.html">AQS讲解</a></p>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000016447307">AQS讲解</a></p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/Juc/">Juc</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Juc/">Juc</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Aqs/">Aqs</a>
+                    
+                      <a class="hover-with-bg" href="/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/">源码分析</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/03/05/thread/06-Juc-Thread-Pool-Resolve/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Juc-ThreadPool 解析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/10/09/jenkins/01-jenkins-introduction/">
+                        <span class="hidden-mobile">Jenkins Pipeline</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                  
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'io-better/doc.io-better.cn.comment');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'doc.io-better.cn');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/io-better?tab=repositories" target="_blank" rel="nofollow noopener"><span>Github</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      $('#local-search-input').on('click', function() {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      });
+      $('#modalSearch').on('shown.bs.modal', function() {
+        $('#local-search-input').focus();
+      });
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>

@@ -8,37 +8,43 @@
 <head>
   <meta charset="UTF-8">
   <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
-  <link rel="icon" type="image/png" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
   
   <meta name="theme-color" content="#2f4154">
-  <meta name="description" content="IO.BETTER的博客">
+  
+    <meta name="description" content="该文章主要讲述代模式以及其实现方式，主要是 静态代理 , 动态代理, Cglib代理.">
+  
   <meta name="author" content="Better.Chen">
   <meta name="keywords" content="">
+  
   <title>Proxy-代理 - IO.BETTER的博客</title>
 
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/css/bootstrap.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
 
 
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/github-markdown-css/4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
   <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
 
   
     
     
       
-      <link  rel="stylesheet" href="https://cdn.staticfile.org/highlight.js/10.0.0/styles/github-gist.min.css" />
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
     
   
 
   
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
 
 
 <!-- 主题依赖的图标库，不要自行修改 -->
 
-<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_pf9vaxs7x7b.css">
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
 
 
 
@@ -50,9 +56,13 @@
 <!-- 自定义样式保持在最底部 -->
 
 
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"doc.io-better.cn","root":"/","version":"1.8.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
   <script  src="/js/utils.js" ></script>
   <script  src="/js/color-schema.js" ></script>
-<meta name="generator" content="Hexo 4.2.0"></head>
+<meta name="generator" content="Hexo 5.4.0"></head>
 
 
 <body>
@@ -149,13 +159,13 @@
   </div>
 </nav>
 
-    <div class="banner intro-2" id="background" parallax=true
+    <div class="banner" id="banner" parallax=true
          style="background: url('/img/back.webp') no-repeat center center;
            background-size: cover;">
       <div class="full-bg-img">
         <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
-          <div class="container page-header text-center fade-in-up">
-            <span class="h2" id="subtitle">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Proxy-代理">
               
             </span>
 
@@ -177,7 +187,7 @@
     
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.4k 字
+      5.5k 字
     </span>
   
 
@@ -187,7 +197,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      74
+      75
        分钟
     </span>
   
@@ -209,21 +219,21 @@
     
       
 
-<div class="container-fluid">
-  <div class="row">
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
     <div class="d-none d-lg-block col-lg-2"></div>
-    <div class="col-lg-8 nopadding-md">
-      <div class="container nopadding-md" id="board-ctn">
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
         <div class="py-5" id="board">
-          <article class="post-content mx-auto" id="post">
+          <article class="post-content mx-auto">
             <!-- SEO header -->
             <h1 style="display: none">Proxy-代理</h1>
             
-            <div class="markdown-body" id="post-body">
+            <div class="markdown-body">
               <p>该文章主要讲述代模式以及其实现方式，主要是 <code>静态代理</code> , <code>动态代理</code>, <code>Cglib代理</code>.</p>
-<a id="more"></a>
+<span id="more"></span>
 
-<h1 id="Proxy"><a href="#Proxy" class="headerlink" title="Proxy"></a>Proxy</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><a href="https://zh.wikipedia.org/wiki/代理模式" target="_blank" rel="noopener">代理模式</a>是一种设计模式，提供了对目标对象额外的访问方式，即通过代理对象访问目标对象，这样可以在不修改原目标对象的前提下，提供额外的功能操作，扩展目标对象的功能。</p>
+<h1 id="Proxy"><a href="#Proxy" class="headerlink" title="Proxy"></a>Proxy</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p><a target="_blank" rel="noopener" href="https://zh.wikipedia.org/wiki/代理模式">代理模式</a>是一种设计模式，提供了对目标对象额外的访问方式，即通过代理对象访问目标对象，这样可以在不修改原目标对象的前提下，提供额外的功能操作，扩展目标对象的功能。</p>
 <p>简言之，代理模式就是设置一个中间代理来控制访问原目标对象，以达到增强原对象的功能和简化访问方式。</p>
 <p>在<code>Java</code>中实现代理主要有三种方式：</p>
 <ul>
@@ -233,7 +243,7 @@
 </ul>
 <h2 id="静态代理"><a href="#静态代理" class="headerlink" title="静态代理"></a>静态代理</h2><p>在静态代理中，需要为每一个被代理对象创建一个代理类，并实现同一个接口。</p>
 <p>示例代码：</p>
-<pre><code class="hljs java"><span class="hljs-comment">// 父接口</span>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 父接口</span>
 <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IConsumer</span> </span>&#123;
   <span class="hljs-comment">// 消费</span>
   <span class="hljs-function">String <span class="hljs-title">consumer</span><span class="hljs-params">()</span></span>;
@@ -247,9 +257,9 @@
   &#125;
   <span class="hljs-meta">@Override</span>
   <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">consumer</span><span class="hljs-params">()</span> </span>&#123;
-    System.out.println(<span class="hljs-string">"代理对象执行前的代码"</span>);
+    System.out.println(<span class="hljs-string">&quot;代理对象执行前的代码&quot;</span>);
     String consumer = <span class="hljs-keyword">this</span>.consumer.consumer();
-    System.out.println(<span class="hljs-string">"代理对象执行后的代码"</span>);
+    System.out.println(<span class="hljs-string">&quot;代理对象执行后的代码&quot;</span>);
     <span class="hljs-keyword">return</span> consumer;
   &#125;
 &#125;
@@ -257,34 +267,34 @@
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Consumer</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IConsumer</span> </span>&#123;
   <span class="hljs-meta">@Override</span>
   <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">consumer</span><span class="hljs-params">()</span> </span>&#123;
-    System.out.println(<span class="hljs-string">"消费方法被调用了"</span>);
-    <span class="hljs-keyword">return</span> <span class="hljs-string">"Success"</span>;
+    System.out.println(<span class="hljs-string">&quot;消费方法被调用了&quot;</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Success&quot;</span>;
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>从代码中看出，<code>ConsumerProxy</code>代理对象持有了<code>Consumer</code>被代理对象的引用，并在<code>consumer方法</code>中调用了<code>被代理对象的consumer方法</code>。来看看实际测试代码：</p>
 <p>测试代码：</p>
-<pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testStaticProxy</span><span class="hljs-params">()</span> </span>&#123;
     Consumer consumer = <span class="hljs-keyword">new</span> Consumer();
     IConsumer consumerProxy = <span class="hljs-keyword">new</span> ConsumerProxy(consumer);
     System.out.println(consumerProxy.consumer());
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>输出结果：</p>
-<pre><code class="hljs txt">代理对象执行前的代码
+<div class="code-wrapper"><pre><code class="hljs txt">代理对象执行前的代码
 消费方法被调用了
 代理对象执行后的代码
-Success</code></pre>
+Success</code></pre></div>
 
 <p><strong>优点：可以最大程度扩展被代理对象的功能。</strong></p>
 <p><strong>缺点：被代理对象会随着代理对象的增加而增加，代码冗余。如果接口新增方法，代理对象和被代理对象都需要实现。</strong></p>
 <p>基于静态代理的缺点，有没有一种代理能够动态的生成代理对象呢？</p>
-<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>动态代理利用了<a href="http://tool.oschina.net/uploads/apidocs/jdk-zh/" target="_blank" rel="noopener">JDK API</a>，动态的在内存中构建代理对象，从而实现对目标对象的代理功能。</p>
+<h2 id="动态代理"><a href="#动态代理" class="headerlink" title="动态代理"></a>动态代理</h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>动态代理利用了<a target="_blank" rel="noopener" href="http://tool.oschina.net/uploads/apidocs/jdk-zh/">JDK API</a>，动态的在内存中构建代理对象，从而实现对目标对象的代理功能。</p>
 <p>动态代理又被称为JDK代理或接口代理。</p>
 <p>相比于静态代理， 动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用修改每个代理类的函数。</p>
 <p>先来看一个示例，了解一下动态代理的基本使用。</p>
-<h3 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h3><pre><code class="hljs java"><span class="hljs-comment">// ①</span>
+<h3 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a>示例代码</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// ①</span>
 <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">IDynamic</span> </span>&#123;
     <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">dynamicProxy</span><span class="hljs-params">()</span></span>;
 &#125;
@@ -292,7 +302,7 @@ Success</code></pre>
 <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Dynamic</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IDynamic</span> </span>&#123;
     <span class="hljs-meta">@Override</span>
     <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">dynamicProxy</span><span class="hljs-params">()</span> </span>&#123;
-        System.out.println(<span class="hljs-string">"目标方法执行了"</span>);
+        System.out.println(<span class="hljs-string">&quot;目标方法执行了&quot;</span>);
     &#125;
 &#125;
 <span class="hljs-comment">// ③</span>
@@ -305,24 +315,24 @@ Success</code></pre>
     <span class="hljs-meta">@Override</span>
     <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
 
-        System.out.println(<span class="hljs-string">"代理执行前"</span>);
+        System.out.println(<span class="hljs-string">&quot;代理执行前&quot;</span>);
         Object invokeResult = method.invoke(proxyTarget, args);
-        System.out.println(<span class="hljs-string">"代理执行后"</span>);
+        System.out.println(<span class="hljs-string">&quot;代理执行后&quot;</span>);
         <span class="hljs-keyword">return</span> invokeResult;
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<h4 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h4><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<h4 id="测试类"><a href="#测试类" class="headerlink" title="测试类"></a>测试类</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testDynamicProxy</span><span class="hljs-params">()</span> </span>&#123;
     Dynamic proxyTarget = <span class="hljs-keyword">new</span> Dynamic();
     IDynamic dynamicProxy = (IDynamic) Proxy.newProxyInstance(proxyTarget.getClass().getClassLoader(),
             proxyTarget.getClass().getInterfaces(), <span class="hljs-keyword">new</span> DynamicProxyInvocation(proxyTarget));
     dynamicProxy.dynamicProxy();
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<h4 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h4><pre><code class="hljs txt">代理执行前
+<h4 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h4><div class="code-wrapper"><pre><code class="hljs txt">代理执行前
 目标方法执行了
-代理执行后</code></pre>
+代理执行后</code></pre></div>
 
 
 
@@ -330,7 +340,7 @@ Success</code></pre>
 <h3 id="Proxy-1"><a href="#Proxy-1" class="headerlink" title="Proxy"></a><code>Proxy</code></h3><h4 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h4><p><code>Proxy.newProxyInstance()</code>方法返回的<code>代理类是如何生成</code>？为什么Jdk 的动态代理<code>被代理类必须实现接口</code>？</p>
 <h4 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h4><p>Proxy提供用于创建动态代理类和实例的静态方法，它还是由这些方法创建的所有动态代理类的<code>超类</code>。</p>
 <h4 id="源代码"><a href="#源代码" class="headerlink" title="源代码"></a>源代码</h4><p>从上面的示例代码可以看出代理类的实例是由<code>Proxy.newProxyInstance</code>返回的，那么我们重点关注<code>Proxy.newProxyInstance</code>这个方法。</p>
-<h5 id="创建代理实例"><a href="#创建代理实例" class="headerlink" title="创建代理实例"></a>创建代理实例</h5><pre><code class="hljs java"><span class="hljs-keyword">protected</span> InvocationHandler h;
+<h5 id="创建代理实例"><a href="#创建代理实例" class="headerlink" title="创建代理实例"></a>创建代理实例</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">protected</span> InvocationHandler h;
 
 <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">Proxy</span><span class="hljs-params">(InvocationHandler h)</span> </span>&#123;
   Objects.requireNonNull(h);
@@ -359,16 +369,16 @@ Success</code></pre>
   &#125;
   <span class="hljs-keyword">return</span> cons.newInstance(<span class="hljs-keyword">new</span> Object[]&#123;h&#125;);
   <span class="hljs-comment">// 忽略部分代码</span>
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>在<code>newProxyInstance</code>方法中有两个比较核心的步骤，分别如下：</p>
 <p>步骤①：获取代理类的<code>Class</code>实例。</p>
 <p>步骤②：获取代理类带有<code>InvocationHandler</code>参数的构造方法。</p>
 <p>除了上面两个比较重要的步骤，还需要关注<code>InvocationHandler h</code>和<code>Proxy(InvocationHandler h)</code>，后面会进行讲解。</p>
 <h5 id="获取代理类字节码"><a href="#获取代理类字节码" class="headerlink" title="获取代理类字节码"></a>获取代理类字节码</h5><p><code>getProxyClass0</code>最终会调用到<code>ProxyClassFactory.apply()</code>方法中，具体操作细节，可自行Debug查看调用链。</p>
-<pre><code class="hljs java">private static final class ProxyClassFactory implements BiFunction&lt;ClassLoader, Class&lt;?&gt;[], Class&lt;?&gt;&gt; &#123;
+<div class="code-wrapper"><pre><code class="hljs java">private static final class ProxyClassFactory implements BiFunction&lt;ClassLoader, Class&lt;?&gt;[], Class&lt;?&gt;&gt; &#123;
 
-  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String proxyClassNamePrefix = <span class="hljs-string">"$Proxy"</span>;
+  <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String proxyClassNamePrefix = <span class="hljs-string">&quot;$Proxy&quot;</span>;
 
   <span class="hljs-meta">@Override</span>
   <span class="hljs-keyword">public</span> Class&lt;?&gt; apply(ClassLoader loader, Class&lt;?&gt;[] interfaces) &#123;
@@ -387,25 +397,25 @@ Success</code></pre>
     &#125; <span class="hljs-keyword">catch</span> (ClassFormatError e) &#123;
       <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(e.toString());
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>步骤①：调用<code>ProxyGenerator.generateProxyClass</code>生成代理类.class的字节数组。</p>
 <p>步骤②：调用<code>defineClass0</code>生成.class文件，并加载到Jvm中。</p>
 <h4 id="手动生成Class"><a href="#手动生成Class" class="headerlink" title="手动生成Class"></a>手动生成Class</h4><p>从上面我们得知了Proxy类在最后调用了<code>ProxyGenerator.generateProxyClass</code>方法生成了代理类的<code>.class</code>字节数组。那么生成的<code>.class</code>结构是怎样的呢？让我们来手动触发调用一下。</p>
-<h5 id="示例代码-1"><a href="#示例代码-1" class="headerlink" title="示例代码"></a>示例代码</h5><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyGeneratorTest</span> </span>&#123;
+<h5 id="示例代码-1"><a href="#示例代码-1" class="headerlink" title="示例代码"></a>示例代码</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ProxyGeneratorTest</span> </span>&#123;
 
   <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
     <span class="hljs-keyword">byte</span>[] dynamicObj = ProxyGenerator.generateProxyClass(
-      <span class="hljs-string">"ManualGeneratorDynamicClass"</span>, <span class="hljs-keyword">new</span> Class[]&#123;IDynamic<span class="hljs-class">.<span class="hljs-keyword">class</span>&#125;, 17)</span>;
+      <span class="hljs-string">&quot;ManualGeneratorDynamicClass&quot;</span>, <span class="hljs-keyword">new</span> Class[]&#123;IDynamic.class&#125;, <span class="hljs-number">17</span>);
 
-    FileOutputStream out = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-keyword">new</span> File(<span class="hljs-string">"ManualGeneratorDynamicClass.class"</span>));
+    FileOutputStream out = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-keyword">new</span> File(<span class="hljs-string">&quot;ManualGeneratorDynamicClass.class&quot;</span>));
     out.write(dynamicObj);
     out.flush();
     out.close();
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<h5 id="代理类-class文件"><a href="#代理类-class文件" class="headerlink" title="代理类.class文件"></a>代理类<code>.class</code>文件</h5><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ManualGeneratorDynamicClass</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Proxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IDynamic</span> </span>&#123;
+<h5 id="代理类-class文件"><a href="#代理类-class文件" class="headerlink" title="代理类.class文件"></a>代理类<code>.class</code>文件</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ManualGeneratorDynamicClass</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">Proxy</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">IDynamic</span> </span>&#123;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Method m1;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Method m2;
     <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Method m3;
@@ -460,23 +470,23 @@ Success</code></pre>
 
     <span class="hljs-keyword">static</span> &#123;
         <span class="hljs-keyword">try</span> &#123;
-            m1 = Class.forName(<span class="hljs-string">"java.lang.Object"</span>).getMethod(<span class="hljs-string">"equals"</span>, Class.forName(<span class="hljs-string">"java.lang.Object"</span>));
-            m2 = Class.forName(<span class="hljs-string">"java.lang.Object"</span>).getMethod(<span class="hljs-string">"toString"</span>);
+            m1 = Class.forName(<span class="hljs-string">&quot;java.lang.Object&quot;</span>).getMethod(<span class="hljs-string">&quot;equals&quot;</span>, Class.forName(<span class="hljs-string">&quot;java.lang.Object&quot;</span>));
+            m2 = Class.forName(<span class="hljs-string">&quot;java.lang.Object&quot;</span>).getMethod(<span class="hljs-string">&quot;toString&quot;</span>);
           	<span class="hljs-comment">// 获取到被代理类实现的接口中的方法</span>
-            m3 = Class.forName(<span class="hljs-string">"io.better.jdk.proxy.dynamicproxy.IDynamic"</span>).getMethod(<span class="hljs-string">"dynamicProxy"</span>);
-            m0 = Class.forName(<span class="hljs-string">"java.lang.Object"</span>).getMethod(<span class="hljs-string">"hashCode"</span>);
+            m3 = Class.forName(<span class="hljs-string">&quot;io.better.jdk.proxy.dynamicproxy.IDynamic&quot;</span>).getMethod(<span class="hljs-string">&quot;dynamicProxy&quot;</span>);
+            m0 = Class.forName(<span class="hljs-string">&quot;java.lang.Object&quot;</span>).getMethod(<span class="hljs-string">&quot;hashCode&quot;</span>);
         &#125; <span class="hljs-keyword">catch</span> (NoSuchMethodException var2) &#123;
             <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoSuchMethodError(var2.getMessage());
         &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException var3) &#123;
             <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> NoClassDefFoundError(var3.getMessage());
         &#125;
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>从代码可以看出<code>ManualGeneratorDynamicClass</code>类不仅继承了<code>Proxy</code>类（解释了Porxy为什么是所有代理类的超类），还实现了<code>被代理类</code>实现的接口（解释了为什么被代理类必须实现接口？）。</p>
 <h3 id="InvocationHandler"><a href="#InvocationHandler" class="headerlink" title="InvocationHandler"></a><code>InvocationHandler</code></h3><p>通过上面对Proxy的了解，我们知道了代理类的方法调用最终会调用到InvocationHandler实例的invoke方法。</p>
 <h4 id="简介-2"><a href="#简介-2" class="headerlink" title="简介"></a>简介</h4><p>InvocationHandler是代理实例的调用处理程序（InvocationHandler实例）实现的接口。<br><code>每个代理实例都有一个关联的调用处理程序</code>。 当一个方法是在代理实例调用，方法调用进行编码，并分发给invoke的调用处理程序的方法。</p>
-<h4 id="源代码-1"><a href="#源代码-1" class="headerlink" title="源代码"></a>源代码</h4><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">InvocationHandler</span> </span>&#123;
+<h4 id="源代码-1"><a href="#源代码-1" class="headerlink" title="源代码"></a>源代码</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">interface</span> <span class="hljs-title">InvocationHandler</span> </span>&#123;
 
   <span class="hljs-comment">// 处理代理实例的方法调用并返回结果。</span>
   <span class="hljs-comment">// 该方法将在调用处理程序时的方法是在一个代理实例，它与相关的调用来调用。</span>
@@ -485,7 +495,7 @@ Success</code></pre>
   <span class="hljs-comment">// args: 方法执行所需的参数</span>
   <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">invoke</span><span class="hljs-params">(Object proxy, Method method, Object[] args)</span></span>
 <span class="hljs-function">    <span class="hljs-keyword">throws</span> Throwable</span>;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 
 
@@ -501,7 +511,7 @@ Success</code></pre>
 <p>通过其代理接口之一对代理实例进行的方法调用将分派给该实例的调用处理程序的invoke方法，并传递该<code>代理实例（proxy参数）</code>，一个标识所调用方法的<code>java.lang.reflect.Method对象（method参数）</code>以及一个数组包含参数的Object类型<code>（args参数）</code>。</p>
 <h2 id="Cglib代理"><a href="#Cglib代理" class="headerlink" title="Cglib代理"></a>Cglib代理</h2><h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>上面我使用了动态代理，知道了动态代理一些优缺点，为了弥补Jdk动态代理的缺点，Cglib诞生了，被代理类无需实现接口也能被代理。</p>
 <h3 id="简介-3"><a href="#简介-3" class="headerlink" title="简介"></a>简介</h3><p><code>cglib</code>-字节码生成库是用于生成和转换Java字节码的高级API。AOP，测试，数据访问框架使用它来生成动态代理对象并拦截字段访问。</p>
-<h3 id="示例代码-2"><a href="#示例代码-2" class="headerlink" title="示例代码"></a>示例代码</h3><pre><code class="hljs java"><span class="hljs-keyword">package</span> io.better.jdk.proxy.cglibproxy;
+<h3 id="示例代码-2"><a href="#示例代码-2" class="headerlink" title="示例代码"></a>示例代码</h3><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">package</span> io.better.jdk.proxy.cglibproxy;
 
 <span class="hljs-keyword">import</span> net.sf.cglib.proxy.Enhancer;
 <span class="hljs-keyword">import</span> net.sf.cglib.proxy.MethodInterceptor;
@@ -516,7 +526,7 @@ Success</code></pre>
 <span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CglibBean</span> </span>&#123;
 
     <span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">proxy</span><span class="hljs-params">()</span> </span>&#123;
-        System.out.println(<span class="hljs-string">"proxy execute ...."</span>);
+        System.out.println(<span class="hljs-string">&quot;proxy execute ....&quot;</span>);
     &#125;
 &#125;
 
@@ -531,33 +541,33 @@ Success</code></pre>
 
     <span class="hljs-meta">@Override</span>
     <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">intercept</span><span class="hljs-params">(Object o, Method method, Object[] objects, MethodProxy methodProxy)</span> <span class="hljs-keyword">throws</span> Throwable </span>&#123;
-        System.out.println(<span class="hljs-string">"cglib 执行前"</span>);
+        System.out.println(<span class="hljs-string">&quot;cglib 执行前&quot;</span>);
         Object result = method.invoke(proxyTarget, objects);
-        System.out.println(<span class="hljs-string">"cglib 执行后"</span>);
+        System.out.println(<span class="hljs-string">&quot;cglib 执行后&quot;</span>);
         <span class="hljs-keyword">return</span> result;
     &#125;
 
     <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">getProxyInstance</span><span class="hljs-params">()</span> </span>&#123;
         <span class="hljs-keyword">if</span> (Objects.isNull(proxyTarget)) &#123;
-            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">"被代理对象不能为空"</span>);
+            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;被代理对象不能为空&quot;</span>);
         &#125;
         Enhancer enhancer = <span class="hljs-keyword">new</span> Enhancer();
         enhancer.setSuperclass(proxyTarget.getClass());
         enhancer.setCallback(<span class="hljs-keyword">this</span>);
         <span class="hljs-keyword">return</span> enhancer.create();
     &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<h4 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h4><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
+<h4 id="测试代码"><a href="#测试代码" class="headerlink" title="测试代码"></a>测试代码</h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-meta">@Test</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testCglib</span><span class="hljs-params">()</span> </span>&#123;
     CglibBean proxyTarget = <span class="hljs-keyword">new</span> CglibBean();
     CglibBean proxyInstance = (CglibBean) <span class="hljs-keyword">new</span> CglibProxyFactory().setProxyTarget(proxyTarget).getProxyInstance();
     proxyInstance.proxy();
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<h4 id="测试结果-1"><a href="#测试结果-1" class="headerlink" title="测试结果"></a>测试结果</h4><pre><code class="hljs txt">cglib 执行前
+<h4 id="测试结果-1"><a href="#测试结果-1" class="headerlink" title="测试结果"></a>测试结果</h4><div class="code-wrapper"><pre><code class="hljs txt">cglib 执行前
 proxy execute ....
-cglib 执行后</code></pre>
+cglib 执行后</code></pre></div>
 
 
 
@@ -576,7 +586,7 @@ cglib 执行后</code></pre>
 <h4 id="创建Enhancer对象"><a href="#创建Enhancer对象" class="headerlink" title="创建Enhancer对象"></a>创建Enhancer对象</h4><h5 id="构造器描述"><a href="#构造器描述" class="headerlink" title="构造器描述"></a>构造器描述</h5><p>创建一个新的增强器。每个生成的对象都应使用一个新的Enhancer对象，并且不应在线程之间共享。要创建生成的类的其他实例，请使用Factory接口。</p>
 <h5 id="继承图"><a href="#继承图" class="headerlink" title="继承图"></a>继承图</h5><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/20200509172422.png" srcset="/img/loading.gif" alt="image-20200509104246223" style="zoom:50%;" />
 
-<h5 id="Enhancer构造器"><a href="#Enhancer构造器" class="headerlink" title="Enhancer构造器"></a>Enhancer构造器</h5><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Source SOURCE = <span class="hljs-keyword">new</span> Source(Enhancer<span class="hljs-class">.<span class="hljs-keyword">class</span>.<span class="hljs-title">getName</span>())</span>;
+<h5 id="Enhancer构造器"><a href="#Enhancer构造器" class="headerlink" title="Enhancer构造器"></a>Enhancer构造器</h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Source SOURCE = <span class="hljs-keyword">new</span> Source(Enhancer.class.getName());
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Enhancer</span><span class="hljs-params">()</span> </span>&#123;
     <span class="hljs-keyword">super</span>(SOURCE);
@@ -585,17 +595,17 @@ cglib 执行后</code></pre>
 <span class="hljs-comment">// 父类AbstractClassGenerator构造器</span>
 <span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-title">AbstractClassGenerator</span><span class="hljs-params">(Source source)</span> </span>&#123;
   <span class="hljs-keyword">this</span>.source = source;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>代码中将Enhancer的名称封装到了Source实例中，并调用父类AbstractClassGenerator构造器进行赋值 。</p>
 <h4 id="设置父类"><a href="#设置父类" class="headerlink" title="设置父类"></a>设置父类</h4><h5 id="方法描述"><a href="#方法描述" class="headerlink" title="方法描述"></a>方法描述</h5><p>设置生成的类将继承的类。 为了方便起见，如果提供的超类实际上是接口，则将使用适当的参数来调用setInterfaces。 非接口参数不能声明为final，并且必须具有可访问的构造函数。</p>
-<h5 id="方法setSuperclass"><a href="#方法setSuperclass" class="headerlink" title="方法setSuperclass"></a>方法<code>setSuperclass</code></h5><pre><code class="hljs java"><span class="hljs-keyword">private</span> Class superclass;
+<h5 id="方法setSuperclass"><a href="#方法setSuperclass" class="headerlink" title="方法setSuperclass"></a>方法<code>setSuperclass</code></h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Class superclass;
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setSuperclass</span><span class="hljs-params">(Class superclass)</span> </span>&#123;
 	<span class="hljs-comment">// 如果为接口，则获取并调用setInterfaces方法</span>
   <span class="hljs-keyword">if</span> (superclass != <span class="hljs-keyword">null</span> &amp;&amp; superclass.isInterface()) &#123;
     setInterfaces(<span class="hljs-keyword">new</span> Class[]&#123; superclass &#125;);
-  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (superclass != <span class="hljs-keyword">null</span> &amp;&amp; superclass.equals(Object<span class="hljs-class">.<span class="hljs-keyword">class</span>)) </span>&#123;
+  &#125; <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (superclass != <span class="hljs-keyword">null</span> &amp;&amp; superclass.equals(Object.class)) &#123;
     <span class="hljs-comment">// affects choice of ClassLoader</span>
     <span class="hljs-keyword">this</span>.superclass = <span class="hljs-keyword">null</span>;
   &#125; <span class="hljs-keyword">else</span> &#123;
@@ -608,11 +618,11 @@ cglib 执行后</code></pre>
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setInterfaces</span><span class="hljs-params">(Class[] interfaces)</span> </span>&#123;
   <span class="hljs-keyword">this</span>.interfaces = interfaces;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>方法逻辑比较简单就是给Enhancer实例中的字段进行赋值。</p>
 <h4 id="设置回调"><a href="#设置回调" class="headerlink" title="设置回调"></a>设置回调</h4><h5 id="方法描述-1"><a href="#方法描述-1" class="headerlink" title="方法描述"></a>方法描述</h5><p>设置要使用的单个回调。 如果使用createClass则被忽略。</p>
-<h5 id="方法setCallback"><a href="#方法setCallback" class="headerlink" title="方法setCallback"></a>方法<code>setCallback</code></h5><pre><code class="hljs java"><span class="hljs-keyword">private</span> Callback[] callbacks;
+<h5 id="方法setCallback"><a href="#方法setCallback" class="headerlink" title="方法setCallback"></a>方法<code>setCallback</code></h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">private</span> Callback[] callbacks;
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCallback</span><span class="hljs-params">(<span class="hljs-keyword">final</span> Callback callback)</span> </span>&#123;
     setCallbacks(<span class="hljs-keyword">new</span> Callback[]&#123; callback &#125;);
@@ -620,21 +630,21 @@ cglib 执行后</code></pre>
 
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setCallbacks</span><span class="hljs-params">(Callback[] callbacks)</span> </span>&#123;
   <span class="hljs-keyword">if</span> (callbacks != <span class="hljs-keyword">null</span> &amp;&amp; callbacks.length == <span class="hljs-number">0</span>) &#123;
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">"Array cannot be empty"</span>);
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;Array cannot be empty&quot;</span>);
   &#125;
   <span class="hljs-keyword">this</span>.callbacks = callbacks;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>该方法也是给Enhancer实例中的<code>callbacks</code>字段进行赋值</p>
 <h4 id="创建代理实例-1"><a href="#创建代理实例-1" class="headerlink" title="创建代理实例"></a>创建代理实例</h4><h5 id="方法描述-2"><a href="#方法描述-2" class="headerlink" title="方法描述"></a>方法描述</h5><p>如有必要，生成一个新类，并使用指定的回调（如果有）来创建一个新的对象实例。 使用超类的no-arg构造函数。</p>
-<h5 id="入口-Enhancer-create"><a href="#入口-Enhancer-create" class="headerlink" title="入口-Enhancer.create"></a>入口-<code>Enhancer.create</code></h5><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">create</span><span class="hljs-params">()</span> </span>&#123;
+<h5 id="入口-Enhancer-create"><a href="#入口-Enhancer-create" class="headerlink" title="入口-Enhancer.create"></a>入口-<code>Enhancer.create</code></h5><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">create</span><span class="hljs-params">()</span> </span>&#123;
     classOnly = <span class="hljs-keyword">false</span>;
     argumentTypes = <span class="hljs-keyword">null</span>;
     <span class="hljs-keyword">return</span> createHelper();
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p><code>createHelper</code></p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Object <span class="hljs-title">createHelper</span><span class="hljs-params">()</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">private</span> Object <span class="hljs-title">createHelper</span><span class="hljs-params">()</span> </span>&#123;
   preValidate();
   Object key = KEY_FACTORY.newInstance((superclass != <span class="hljs-keyword">null</span>) ? superclass.getName() : <span class="hljs-keyword">null</span>,
                                        ReflectUtils.getNames(interfaces),
@@ -646,11 +656,11 @@ cglib 执行后</code></pre>
   <span class="hljs-keyword">this</span>.currentKey = key;
   Object result = <span class="hljs-keyword">super</span>.create(key);
   <span class="hljs-keyword">return</span> result;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p><code>KEY_FACTORY.newInstance</code>生成的<code>key</code>需要特别注意，后面在<code>生成代理类Class时会用此key与Class一对一绑定</code>。</p>
 <p>继续查看父类的<code>create</code>方法。</p>
-<h4 id="AbstractClassGenerator-create"><a href="#AbstractClassGenerator-create" class="headerlink" title="AbstractClassGenerator.create"></a><code>AbstractClassGenerator.create</code></h4><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">create</span><span class="hljs-params">(Object key)</span> </span>&#123;
+<h4 id="AbstractClassGenerator-create"><a href="#AbstractClassGenerator-create" class="headerlink" title="AbstractClassGenerator.create"></a><code>AbstractClassGenerator.create</code></h4><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">create</span><span class="hljs-params">(Object key)</span> </span>&#123;
   <span class="hljs-keyword">try</span> &#123;
     ClassLoader loader = getClassLoader();
     Map&lt;ClassLoader, ClassLoaderData&gt; cache = CACHE;
@@ -666,7 +676,7 @@ cglib 执行后</code></pre>
     <span class="hljs-keyword">return</span> nextInstance(obj);
   &#125; <span class="hljs-keyword">catch</span> (RuntimeException e) &#123;
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>上诉代码中忽略了部分代码，重点关注<code>步骤①</code> 和<code>步骤②</code>对应的两个方法。</p>
 <p>步骤①：调用<code>ClassLoaderData.get()</code>获取代理类Class对象。</p>
@@ -682,9 +692,9 @@ cglib 执行后</code></pre>
 <p><code>classLoader</code>：加载生成Class对象的加载器。</p>
 <p>可以看出ClassLoaderData内部管理生成的Class类和加载Class所需的ClassLoader，可以简单<code>理解为生成Class并存储Class的容器</code>。</p>
 <h6 id="init"><a href="#init" class="headerlink" title="init"></a><code>init</code></h6><p>那么<code>ClassLoaderData</code>是如何初始化的呢 ？我们进入ClassLoaderData的构造器看看：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ClassLoaderData</span><span class="hljs-params">(ClassLoader classLoader)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ClassLoaderData</span><span class="hljs-params">(ClassLoader classLoader)</span> </span>&#123;
   <span class="hljs-keyword">if</span> (classLoader == <span class="hljs-keyword">null</span>) &#123;
-    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">"classLoader == null is not yet supported"</span>);
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">&quot;classLoader == null is not yet supported&quot;</span>);
   &#125;
   <span class="hljs-comment">// 设置加载类使用的ClassLoader</span>
   <span class="hljs-keyword">this</span>.classLoader = <span class="hljs-keyword">new</span> WeakReference&lt;ClassLoader&gt;(classLoader);
@@ -698,11 +708,11 @@ cglib 执行后</code></pre>
   &#125;;
   <span class="hljs-comment">// 在这里对generatedClasses做了初始化</span>
   generatedClasses = <span class="hljs-keyword">new</span> LoadingCache&lt;AbstractClassGenerator, Object, Object&gt;(GET_KEY, load);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>可以看出<code>classLoader，generatedClasses</code>两个对象被进行了初始化，在这里重点注意<code>load</code>这个函数 ，<code>这个函数就是创建代理类Class的关键</code>。</p>
 <h6 id="ClassLoaderData-get"><a href="#ClassLoaderData-get" class="headerlink" title="ClassLoaderData.get"></a><code>ClassLoaderData.get</code></h6><p>了解了<code>ClassLoaderData</code>后，我们进入 <code>get()</code>方法一探究竟：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">get</span><span class="hljs-params">(AbstractClassGenerator gen, <span class="hljs-keyword">boolean</span> useCache)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">get</span><span class="hljs-params">(AbstractClassGenerator gen, <span class="hljs-keyword">boolean</span> useCache)</span> </span>&#123;
 	<span class="hljs-comment">// useCache默认值为true</span>
   <span class="hljs-keyword">if</span> (!useCache) &#123;
     <span class="hljs-keyword">return</span> gen.generate(ClassLoaderData.<span class="hljs-keyword">this</span>);
@@ -711,23 +721,23 @@ cglib 执行后</code></pre>
     Object cachedValue = generatedClasses.get(gen);
     <span class="hljs-keyword">return</span> gen.unwrapCachedValue(cachedValue);
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>如果不修改useCache的值，代码最终会调用<code>generatedClasses.get</code>方法。到这里是不是感觉<code>generatedClasses</code>这个对象是不是非常眼熟，没错他就是<code>ClassLoaderData中存放生成过Class的对象</code>。</p>
 <p>接着进入generatedClasses对象一探究竟。</p>
 <h6 id="LoadingCache"><a href="#LoadingCache" class="headerlink" title="LoadingCache"></a><code>LoadingCache</code></h6><p>在如何<code>LoadingCache.get</code>方法前，我们先来看看<code>LoadingCache</code>的构造函数：</p>
-<pre><code class="hljs java"><span class="hljs-comment">// 上面ClassLoaderData构造器中最后一步会调用</span>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-comment">// 上面ClassLoaderData构造器中最后一步会调用</span>
 <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">LoadingCache</span><span class="hljs-params">(Function&lt;K, KK&gt; keyMapper, Function&lt;K, V&gt; loader)</span> </span>&#123;
     <span class="hljs-keyword">this</span>.keyMapper = keyMapper;  <span class="hljs-comment">// 用于获取 KEY_FACTORY.newInstance 创建的key的函数</span>
     <span class="hljs-keyword">this</span>.loader = loader;   <span class="hljs-comment">// 用于生成代理类的Class函数</span>
     <span class="hljs-keyword">this</span>.map = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;KK, Object&gt;();
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>LoadingCache构造函数主要是在对<code>自身变量进行赋值</code>操作。</p>
 <p><code>loader</code>：类型为函数，用于创建代理类Class</p>
 <p><code>keyMapper</code>：类型为函数，用于获取前面<code>Enhancer.create</code>方法中通过<code>KEY_FACTORY.newInstance</code>创建的<code>key</code></p>
 <p><code>map</code>：key=<code>keyMapper函数获取到的key</code>，value=<code>loader函数生成的代理Class数据</code>。</p>
-<h6 id="LoadingCache-get"><a href="#LoadingCache-get" class="headerlink" title="LoadingCache.get"></a><code>LoadingCache.get</code></h6><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(K key)</span> </span>&#123;
+<h6 id="LoadingCache-get"><a href="#LoadingCache-get" class="headerlink" title="LoadingCache.get"></a><code>LoadingCache.get</code></h6><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(K key)</span> </span>&#123;
   <span class="hljs-comment">// 获取到 KEY_FACTORY.newInstance 创建的key</span>
   <span class="hljs-keyword">final</span> KK cacheKey = keyMapper.apply(key);
   <span class="hljs-comment">// 查看是否已经存在</span>
@@ -737,11 +747,11 @@ cglib 执行后</code></pre>
   &#125;
   <span class="hljs-comment">// 不存在，则创建</span>
   <span class="hljs-keyword">return</span> createEntry(key, cacheKey, v);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 
 
-<h6 id="LoadingCache-createEntry"><a href="#LoadingCache-createEntry" class="headerlink" title="LoadingCache.createEntry"></a><code>LoadingCache.createEntry</code></h6><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> V <span class="hljs-title">createEntry</span><span class="hljs-params">(<span class="hljs-keyword">final</span> K key, KK cacheKey, Object v)</span> </span>&#123;
+<h6 id="LoadingCache-createEntry"><a href="#LoadingCache-createEntry" class="headerlink" title="LoadingCache.createEntry"></a><code>LoadingCache.createEntry</code></h6><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> V <span class="hljs-title">createEntry</span><span class="hljs-params">(<span class="hljs-keyword">final</span> K key, KK cacheKey, Object v)</span> </span>&#123;
   <span class="hljs-comment">// key = AbstractClassGenerator</span>
   <span class="hljs-comment">// cacheKey = Enhancer.EnhancerKey</span>
   
@@ -779,20 +789,20 @@ cglib 执行后</code></pre>
     map.put(cacheKey, result);
   &#125;
   <span class="hljs-keyword">return</span> result;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>这个方法主要是创建FutureTask用于异步创建Class对象，并对其结果进行了缓存，提高性能。</p>
 <p>接下来调用<code>load.apply</code>执行函数，最终调用至<code>AbstractClassGenerator.generate</code>方法中。</p>
-<pre><code class="hljs java">Function&lt;AbstractClassGenerator, Object&gt; load = <span class="hljs-keyword">new</span> Function&lt;AbstractClassGenerator, Object&gt;() &#123;
+<div class="code-wrapper"><pre><code class="hljs java">Function&lt;AbstractClassGenerator, Object&gt; load = <span class="hljs-keyword">new</span> Function&lt;AbstractClassGenerator, Object&gt;() &#123;
   <span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">apply</span><span class="hljs-params">(AbstractClassGenerator gen)</span> </span>&#123;
     Class klass = gen.generate(ClassLoaderData.<span class="hljs-keyword">this</span>);
     <span class="hljs-keyword">return</span> gen.wrapCachedClass(klass);
   &#125;
-&#125;;</code></pre>
+&#125;;</code></pre></div>
 
 
 
-<h6 id="AbstractClassGenerator-generate"><a href="#AbstractClassGenerator-generate" class="headerlink" title="AbstractClassGenerator.generate"></a><code>AbstractClassGenerator.generate</code></h6><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Class <span class="hljs-title">generate</span><span class="hljs-params">(ClassLoaderData data)</span> </span>&#123;
+<h6 id="AbstractClassGenerator-generate"><a href="#AbstractClassGenerator-generate" class="headerlink" title="AbstractClassGenerator.generate"></a><code>AbstractClassGenerator.generate</code></h6><div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Class <span class="hljs-title">generate</span><span class="hljs-params">(ClassLoaderData data)</span> </span>&#123;
   Class gen;
   <span class="hljs-comment">// 从ThreadLocal获取对象，默认应该为null</span>
   Object save = CURRENT.get();
@@ -821,7 +831,7 @@ cglib 执行后</code></pre>
     <span class="hljs-comment">// 置为null</span>
     CURRENT.set(save);
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>步骤①：</p>
 <p>调用<code>strategy.generate</code>方法生成代理类字节码数组。</p>
@@ -829,7 +839,7 @@ cglib 执行后</code></pre>
 <p><code>strategy.generate</code>方法最终会调用到<code>Enhancer.generateClass(ClassVisitor v)</code>方法，这里面包含了生成代理类字节码具体步骤（这里了不做讲解，有兴趣的可自行查看）。</p>
 <p>步骤②：</p>
 <p>调用<code>ReflectUtils.defineClass</code>方法使用传入的ClassLoader加载生成的代理类字节码数组。</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Class <span class="hljs-title">defineClass</span><span class="hljs-params">(String className, <span class="hljs-keyword">byte</span>[] b, ClassLoader loader, ProtectionDomain protectionDomain)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Class <span class="hljs-title">defineClass</span><span class="hljs-params">(String className, <span class="hljs-keyword">byte</span>[] b, ClassLoader loader, ProtectionDomain protectionDomain)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
   Class c;
   <span class="hljs-keyword">if</span> (DEFINE_CLASS != <span class="hljs-keyword">null</span>) &#123;
     Object[] args = <span class="hljs-keyword">new</span> Object[]&#123;className, b, <span class="hljs-keyword">new</span> Integer(<span class="hljs-number">0</span>), <span class="hljs-keyword">new</span> Integer(b.length), protectionDomain &#125;;
@@ -840,14 +850,14 @@ cglib 执行后</code></pre>
   
   Class.forName(className, <span class="hljs-keyword">true</span>, loader);
   <span class="hljs-keyword">return</span> c;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
-<pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Method DEFINE_CLASS, DEFINE_CLASS_UNSAFE;</code></pre>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Method DEFINE_CLASS, DEFINE_CLASS_UNSAFE;</code></pre></div>
 
 <p><code>DEFINE_CLASS</code>其实是<code>java.lang.ClassLoader.defineClass</code>对应的Method对象。</p>
 <h5 id="步骤②"><a href="#步骤②" class="headerlink" title="步骤②"></a>步骤②</h5><p>走完步骤①代理类的Class对象已生成，接下来就是通过该Class对象生成代理实例。</p>
 <p>我们进入<code>nextInstance(obj);</code>方法查看实例化流程：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">nextInstance</span><span class="hljs-params">(Object instance)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">protected</span> Object <span class="hljs-title">nextInstance</span><span class="hljs-params">(Object instance)</span> </span>&#123;
   EnhancerFactoryData data = (EnhancerFactoryData) instance;
 
   <span class="hljs-keyword">if</span> (classOnly) &#123;
@@ -862,11 +872,11 @@ cglib 执行后</code></pre>
   &#125;
   <span class="hljs-comment">// 步骤①</span>
   <span class="hljs-keyword">return</span> data.newInstance(argumentTypes, arguments, callbacks);
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>该方法在调用代理类Class构造函数前，处理好对应的构造函数参数类型和参数。</p>
 <p>重点关注步骤①：</p>
-<pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">newInstance</span><span class="hljs-params">(Class[] argumentTypes, Object[] arguments, Callback[] callbacks)</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-function"><span class="hljs-keyword">public</span> Object <span class="hljs-title">newInstance</span><span class="hljs-params">(Class[] argumentTypes, Object[] arguments, Callback[] callbacks)</span> </span>&#123;
   setThreadCallbacks(callbacks);
   <span class="hljs-keyword">try</span> &#123;
     <span class="hljs-comment">// Explicit reference equality is added here just in case Arrays.equals does not have one</span>
@@ -881,18 +891,18 @@ cglib 执行后</code></pre>
     setThreadCallbacks(<span class="hljs-keyword">null</span>);
   &#125;
 
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>至此Cglib创建代理对象流程分析完毕。</p>
 <h4 id="使用Cglib手动生成Class文件"><a href="#使用Cglib手动生成Class文件" class="headerlink" title="使用Cglib手动生成Class文件"></a>使用Cglib手动生成Class文件</h4><p>分析完Cglib整个创建流程，我还不能像Jdk动态代理一样了解到生成的代理类字节码到底是怎样的？接下来我们使用Cglib手动生成一个代理类的Class文件。</p>
 <p>由于<code>strategy.generate</code>方法所需参数较为复杂，可<code>Debug</code>至<code>byte[] b = strategy.generate(this);</code>这行代码利用IDEA的<code>Evaluate Expression</code>功能手动输入以下代码：</p>
-<pre><code class="hljs java">FileOutputStream out = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-keyword">new</span> File(<span class="hljs-string">"ManualGeneratorProxyCglibProxy.class"</span>));
+<div class="code-wrapper"><pre><code class="hljs java">FileOutputStream out = <span class="hljs-keyword">new</span> FileOutputStream(<span class="hljs-keyword">new</span> File(<span class="hljs-string">&quot;ManualGeneratorProxyCglibProxy.class&quot;</span>));
 out.write(b);
 out.flush();
-out.close();</code></pre>
+out.close();</code></pre></div>
 
 <p>生成文件如下：</p>
-<pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CglibBean</span>$$<span class="hljs-title">EnhancerByCGLIB</span>$$70184645 <span class="hljs-keyword">extends</span> <span class="hljs-title">CglibBean</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Factory</span> </span>&#123;
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CglibBean</span>$$<span class="hljs-title">EnhancerByCGLIB</span>$$70184645 <span class="hljs-keyword">extends</span> <span class="hljs-title">CglibBean</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Factory</span> </span>&#123;
   <span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> CGLIB$BOUND;
   <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object CGLIB$FACTORY_DATA;
   <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> ThreadLocal CGLIB$THREAD_CALLBACKS;
@@ -907,14 +917,14 @@ out.close();</code></pre>
     CGLIB$THREAD_CALLBACKS = <span class="hljs-keyword">new</span> ThreadLocal();
     CGLIB$emptyArgs = <span class="hljs-keyword">new</span> Object[<span class="hljs-number">0</span>];
     <span class="hljs-comment">// 通过反射得到代理类的Class对象</span>
-    Class var0 = Class.forName(<span class="hljs-string">"io.better.jdk.proxy.cglibproxy.CglibBean$$EnhancerByCGLIB$$70184645"</span>);
+    Class var0 = Class.forName(<span class="hljs-string">&quot;io.better.jdk.proxy.cglibproxy.CglibBean$$EnhancerByCGLIB$$70184645&quot;</span>);
     Class var1;
     <span class="hljs-comment">// 获取到被代理类所有的方法，找到proxy，返回类型为void的方法对应的Method对象</span>
-    CGLIB$proxy$<span class="hljs-number">0</span>$Method = ReflectUtils.findMethods(<span class="hljs-keyword">new</span> String[]&#123;<span class="hljs-string">"proxy"</span>, <span class="hljs-string">"()V"</span>&#125;, (var1 = Class.forName(<span class="hljs-string">"io.better.jdk.proxy.cglibproxy.CglibBean"</span>)).getDeclaredMethods())[<span class="hljs-number">0</span>];
+    CGLIB$proxy$<span class="hljs-number">0</span>$Method = ReflectUtils.findMethods(<span class="hljs-keyword">new</span> String[]&#123;<span class="hljs-string">&quot;proxy&quot;</span>, <span class="hljs-string">&quot;()V&quot;</span>&#125;, (var1 = Class.forName(<span class="hljs-string">&quot;io.better.jdk.proxy.cglibproxy.CglibBean&quot;</span>)).getDeclaredMethods())[<span class="hljs-number">0</span>];
     <span class="hljs-comment">// 为proxy方法生成MethodProxy对象</span>
     <span class="hljs-comment">// var1=被代理类的Class对象</span>
     <span class="hljs-comment">// var2=代理类的Class对象</span>
-    CGLIB$proxy$<span class="hljs-number">0</span>$Proxy = MethodProxy.create(var1, var0, <span class="hljs-string">"()V"</span>, <span class="hljs-string">"proxy"</span>, <span class="hljs-string">"CGLIB$proxy$0"</span>);
+    CGLIB$proxy$<span class="hljs-number">0</span>$Proxy = MethodProxy.create(var1, var0, <span class="hljs-string">&quot;()V&quot;</span>, <span class="hljs-string">&quot;proxy&quot;</span>, <span class="hljs-string">&quot;CGLIB$proxy$0&quot;</span>);
   &#125;
 
   <span class="hljs-keyword">final</span> <span class="hljs-keyword">void</span> CGLIB$proxy$<span class="hljs-number">0</span>() &#123;
@@ -940,7 +950,7 @@ out.close();</code></pre>
   <span class="hljs-keyword">static</span> &#123;
     CGLIB$STATICHOOK1();
   &#125;
-&#125;</code></pre>
+&#125;</code></pre></div>
 
 <p>上诉代码中忽略了<code>equals，hashCode，toString</code>等方法。感兴趣的同学可以自己操作一下。</p>
 <h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><ol>
@@ -976,10 +986,14 @@ out.close();</code></pre>
                 
               </div>
               
-                <p class="note note-warning">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" target="_blank" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！</p>
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
               
               
-                <div class="post-prevnext row">
+                <div class="post-prevnext">
                   <article class="post-prev col-6">
                     
                     
@@ -1008,9 +1022,11 @@ out.close();</code></pre>
               <!-- Comments -->
               <article class="comments" id="comments">
                 
+                  
+                
                 
   <script type="text/javascript">
-    function loadUtterances() {
+    Fluid.utils.waitElementVisible('comments', function() {
       var light = 'github-light';
       var dark = 'github-dark';
       var schema = document.documentElement.getAttribute('data-user-color-scheme');
@@ -1031,9 +1047,9 @@ out.close();</code></pre>
       s.setAttribute('theme', schema);
       s.setAttribute('crossorigin', 'anonymous');
       document.getElementById('comments').appendChild(s);
-    }
-    waitElementVisible('comments', loadUtterances)
+    })
   </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
 
 
               </article>
@@ -1046,7 +1062,7 @@ out.close();</code></pre>
       <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
         <div id="toc">
   <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
-  <div id="tocbot"></div>
+  <div class="toc-body" id="toc-body"></div>
 </div>
 
       </div>
@@ -1058,16 +1074,15 @@ out.close();</code></pre>
 
 
     
-  </main>
 
-  
-    <a id="scroll-top-button" href="#" role="button">
-      <i class="iconfont icon-arrowup" aria-hidden="true"></i>
-    </a>
-  
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
 
-  
-    <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
      aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
     <div class="modal-content">
@@ -1088,33 +1103,41 @@ out.close();</code></pre>
     </div>
   </div>
 </div>
-  
-
-  
-
-  
-
-  <footer class="mt-5">
-  <div class="text-center py-3">
-    <div>
-      <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a>
-      <i class="iconfont icon-love"></i>
-      <a href="https://doc.io-better.cn" target="_blank" rel="nofollow noopener">
-        <span>IO.BETTER</span></a>
-    </div>
     
 
     
+  </main>
 
-    
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/io-better?tab=repositories" target="_blank" rel="nofollow noopener"><span>Github</span></a> 
   </div>
+  
+
+  
+
+  
 </footer>
 
 <!-- SCRIPTS -->
-<script  src="https://cdn.staticfile.org/jquery/3.4.1/jquery.min.js" ></script>
-<script  src="https://cdn.staticfile.org/twitter-bootstrap/4.4.1/js/bootstrap.min.js" ></script>
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
 <script  src="/js/debouncer.js" ></script>
-<script  src="/js/main.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
 
 <!-- Plugins -->
 
@@ -1129,103 +1152,49 @@ out.close();</code></pre>
 
 
 
-  <script defer src="https://cdn.staticfile.org/clipboard.js/2.0.6/clipboard.min.js" ></script>
-  <script  src="/js/clipboard-use.js" ></script>
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
 
 
 
 
 
 
-
-  <script  src="https://cdn.staticfile.org/tocbot/4.11.1/tocbot.min.js" ></script>
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
   <script>
-    $(document).ready(function () {
-      var boardCtn = $('#board-ctn');
-      var boardTop = boardCtn.offset().top;
-
-      tocbot.init({
-        tocSelector: '#tocbot',
-        contentSelector: '#post-body',
-        headingSelector: 'h1,h2,h3,h4,h5,h6',
-        linkClass: 'tocbot-link',
-        activeLinkClass: 'tocbot-active-link',
-        listClass: 'tocbot-list',
-        isCollapsedClass: 'tocbot-is-collapsed',
-        collapsibleClass: 'tocbot-is-collapsible',
-        collapseDepth: 0,
-        scrollSmooth: true,
-        headingsOffset: -boardTop
-      });
-      if ($('.toc-list-item').length > 0) {
-        $('#toc').css('visibility', 'visible');
-      }
-    });
-  </script>
-
-
-
-  <script  src="https://cdn.staticfile.org/typed.js/2.0.11/typed.min.js" ></script>
-  <script>
-    var typed = new Typed('#subtitle', {
-      strings: [
-        '  ',
-        "Proxy-代理&nbsp;",
-      ],
-      cursorChar: "_",
-      typeSpeed: 70,
-      loop: false,
-    });
-    typed.stop();
-    $(document).ready(function () {
-      $(".typed-cursor").addClass("h2");
-      typed.start();
-    });
-  </script>
-
-
-
-  <script  src="https://cdn.staticfile.org/anchor-js/4.2.2/anchor.min.js" ></script>
-  <script>
-    anchors.options = {
-      placement: "right",
-      visible: "hover",
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
       
-    };
-    var el = "h1,h2,h3,h4,h5,h6".split(",");
-    var res = [];
-    for (item of el) {
-      res.push(".markdown-body > " + item)
-    }
-    anchors.add(res.join(", "))
+      typing(title)
+      
+    })(window, document);
   </script>
 
 
 
   <script  src="/js/local-search.js" ></script>
   <script>
-    var path = "/local-search.xml";
-    var inputArea = document.querySelector("#local-search-input");
-    inputArea.onclick = function () {
-      searchFunc(path, 'local-search-input', 'local-search-result');
-      this.onclick = null
-    }
-  </script>
-
-
-
-  <script  src="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.js" ></script>
-  <link  rel="stylesheet" href="https://cdn.staticfile.org/fancybox/3.5.7/jquery.fancybox.min.css" />
-
-  <script>
-    $('#post img:not(.no-zoom img, img[no-zoom]), img[zoom]').each(
-      function () {
-        var element = document.createElement('a');
-        $(element).attr('data-fancybox', 'images');
-        $(element).attr('href', $(this).attr('src'));
-        $(this).wrap(element);
-      }
-    );
+    (function () {
+      var path = "/local-search.xml";
+      $('#local-search-input').on('click', function() {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      });
+      $('#modalSearch').on('shown.bs.modal', function() {
+        $('#local-search-input').focus();
+      });
+    })()
   </script>
 
 
@@ -1242,8 +1211,8 @@ out.close();</code></pre>
 
 
 
-
-
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
 
 
 
