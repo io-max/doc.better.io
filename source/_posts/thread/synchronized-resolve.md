@@ -9,15 +9,12 @@ index_img: img/java-logo-480.png
 abbrlink: 40532
 ---
 
-本章主要讲述 Java 中存在的锁，以及 Synchronized 关键字及其底层实现原理，会简单设计到 CAS 的相关知识。
-
-本章主要讲解Synchronized关键字及其优化过程中相关锁的变化, 包括其底层实现原理.
-
-- Synchronized 关键字的使用?
-- Synchronized 关键字在使用中锁的变化,及其升级过程?
-- Synchronized 的底层实现?
-- 锁的分类有些? 
-- 锁优化有哪些? 
+> 本章讲解如下：
+> - Synchronized 关键字的使用?
+> - Synchronized 关键字在使用中锁的变化,及其升级过程?
+> - Synchronized 的底层实现?
+> - 锁的分类有些? 
+> - 锁优化有哪些? 
 
 <!-- more -->
 
