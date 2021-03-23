@@ -9,11 +9,6 @@ categories: Juc
 index_img: img/java-logo-480.png
 abbrlink: 33784
 ---
-该文章主要讲述 Java 中 Juc 包下的 ThreadPoolExecutor 
-主要讲述 线程池 的核心设计以及其流程执行和源码分析
-
-<!-- more -->
-## 本章简介
 
 >本章主要讲述线程池
 >
@@ -23,6 +18,9 @@ abbrlink: 33784
 >4. 线程池中线程回收流程
 >5. 线程池核心参数动态调整
 >6. 线程池队列动态调整
+<!-- more -->
+
+
 
 
 
@@ -119,7 +117,7 @@ public interface ExecutorService extends Executor {
 
 ## AbstractExecutorService
 
-#### 简介
+### 简介
 
 该类是ExecutorService的基础实现,  对现`submit `，` invokeAny`和`invokeAll`等方法进行的简单的实现.
 
@@ -127,20 +125,418 @@ public interface ExecutorService extends Executor {
 
 
 
-#### 核心方法
+### submit
+
+此方法用于向线程池中提交一个任务并返回一个 Future，并通过 Future 来一步通知 task 的完成情况。
+
+```java
+public <T> Future<T> submit(Runnable task, T result) {
+  if (task == null) throw new NullPointerException();
+  // 包装 Runnable
+  RunnableFuture<T> ftask = newTaskFor(task, result);
+  execute(ftask);
+  return ftask;
+}
+
+public <T> Future<T> submit(Callable<T> task) {
+  if (task == null) throw new NullPointerException();
+  // 包装Callable
+  RunnableFuture<T> ftask = newTaskFor(task);
+  execute(ftask);
+  return ftask;
+}
+```
+
+从代码可以看出重载的 submit 都对参数进行了包装且类型为RunnableFuture，最终都调用了 execute 方法。
+
+查看 newTaskFor 方法看看实际返回的 RunnableFuture 类型
 
 ```java
 protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
   return new FutureTask<T>(runnable, value);
 }
+```
 
-public Future<?> submit(Runnable task) {
-  if (task == null) throw new NullPointerException();
-  RunnableFuture<Void> ftask = newTaskFor(task, null);
-  execute(ftask);
-  return ftask;
+
+
+### FutureTask
+
+#### **简介**
+
+FutureTask是一个可操作的异步 Future 实现，提供了 Future 的基础实现，包含了启动，取消，查看，获取等操作。
+
+
+
+#### **特性/作用**
+
+- 只有在 Future 完成时获取结果才不会阻塞，如果 Future 为完成则会阻塞调用线程，直到Future 完成。
+- Future 一旦完成不可再次启动或取消
+
+
+
+此类主要用于包装 Runnable 和 Callable。
+
+
+
+#### **状态**
+
+该类使用了一个 volatile 修饰的int 类型 state 变量来表示 Future 的状态。初始化状态为 `NEW`。
+
+运行状态仅在`set、setException、cancel`方法中转换为终止状态。
+
+可能的状态变化：
+
+`NEW -> COMPLETING -> NORMAL NEW -> COMPLETING -> EXCEPTIONAL NEW -> CANCELLED NEW -> INTERRUPTING -> INTERRUPTED`
+
+
+
+```java
+private volatile int state;
+private static final int NEW          = 0;
+private static final int COMPLETING   = 1;
+private static final int NORMAL       = 2;
+private static final int EXCEPTIONAL  = 3;
+private static final int CANCELLED    = 4;
+private static final int INTERRUPTING = 5;
+private static final int INTERRUPTED  = 6;
+```
+
+
+
+#### **核心属性**
+
+```java
+// 要执行的task
+private Callable<V> callable;
+// 执行结果两种情况：
+// task 执行出现异常，则outcome存储的是异常
+// task 执行未出异常，则outcome存储的是结果
+private Object outcome;
+// 执行 task 的线程
+private volatile Thread runner;
+/** Treiber stack of waiting threads */
+// 
+private volatile WaitNode waiters;
+```
+
+
+
+#### **构造函数**
+
+```java
+public FutureTask(Runnable runnable, V result) {
+  // 封装成 Callable
+  this.callable = Executors.callable(runnable, result);
+  this.state = NEW;       // 设置初始化状态
 }
 ```
+
+
+
+当一个 FutureTask 执行时会执行其 run 方法
+
+
+
+#### run
+
+```java
+public void run() {
+  // 状态为 NEW 的情况下设置执行当前 task 的线程（runner 成员变量赋值）
+  if (state != NEW ||
+      !UNSAFE.compareAndSwapObject(this, runnerOffset,null, Thread.currentThread()))
+    return;
+
+  try {
+    Callable<V> c = callable;
+    // task不为空且状态为 NEW
+    if (c != null && state == NEW) {
+      V result;
+      boolean ran;
+      try {
+        // 执行 task
+        result = c.call();
+        ran = true;
+      } catch (Throwable ex) {
+        result = null;
+        ran = false;
+        // 出现异常，设置异常结果
+        setException(ex);
+      }
+      // 结束，设置结果
+      if (ran)
+        set(result);
+    }
+  } finally {
+    runner = null;
+    int s = state;
+    if (s >= INTERRUPTING)
+      handlePossibleCancellationInterrupt(s);
+  }
+}
+
+protected void set(V v) {
+  // 更新 FutureTask 状态成功
+  if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {
+    // 设置结果
+    outcome = v; 
+    UNSAFE.putOrderedInt(this, stateOffset, NORMAL); // final state
+    // 唤醒所有等待的线程，并使 FutureTask 包装的 Callable 或 Runable 无效
+    finishCompletion();
+  }
+}
+
+private void finishCompletion() {
+  // assert state > COMPLETING;
+  // 遍历等待的线程
+  for (WaitNode q; (q = waiters) != null;) {
+    // 将 waiters 设置为空
+    if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) {
+      for (;;) {
+        // 获取等待的线程
+        Thread t = q.thread;
+        if (t != null) {
+          q.thread = null;
+          // 不为空则解锁
+          LockSupport.unpark(t);
+        }
+        // 获取下一个节点，为空则结束
+        WaitNode next = q.next;
+        if (next == null)
+          break;
+        q.next = null; // unlink to help gc
+        q = next;
+      }
+      break;
+    }
+  }
+	// 钩子函数，该方法在 invokeAny 中封装的QueueingFuture中有重写使用
+  done();
+
+  callable = null;
+}
+```
+
+
+
+
+
+#### cancel
+
+```java
+public boolean cancel(boolean mayInterruptIfRunning) {
+ 	// 根据参数更新state状态
+  if (!(state == NEW &&
+        UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
+                                 mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
+    return false;
+  
+  try {    // in case call to interrupt throws exception
+    if (mayInterruptIfRunning) {
+      try {
+        // 获取到线程
+        Thread t = runner;
+        if (t != null)
+          // 设置中断信号
+          t.interrupt();
+      } finally { // final state
+        // 设置为中断状态
+        UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);
+      }
+    }
+  } finally {
+    // 唤醒等待的线程，并使 FutureTask 包装的 Callable 或 Runable 无效
+    finishCompletion();
+  }
+  return true;
+}
+```
+
+根据入参判断因该中的 FutureTask 还是取消 FutureTask，中断则调用 Thread.interrupt(); 并更新 state 状态，最终唤醒等待的线程。
+
+#### get
+
+```java
+public V get() throws InterruptedException, ExecutionException {
+  int s = state;
+  if (s <= COMPLETING)
+    // 等待 FutureTask 完成
+    s = awaitDone(false, 0L);
+  // 根据 state 的值作出响应的处理
+  return report(s);
+}
+
+private int awaitDone(boolean timed, long nanos)
+  throws InterruptedException {
+  // 计算超时时间
+  final long deadline = timed ? System.nanoTime() + nanos : 0L;
+  WaitNode q = null;
+  boolean queued = false;
+  // 自旋
+  for (;;) {
+    // 线程是否设置过中断标识位
+    if (Thread.interrupted()) {
+      removeWaiter(q);  // 移除等待的线程节点
+      throw new InterruptedException();
+    }
+		// 获取状态
+    int s = state;
+    // 已经完成或取消
+    if (s > COMPLETING) {
+      if (q != null)
+        q.thread = null;
+      // 返回状态
+      return s;
+    }
+    // 正在执行，则让出CPU时间片
+    else if (s == COMPLETING) 
+      Thread.yield();
+    // 初始化等待的线程节点
+    else if (q == null)
+      q = new WaitNode();
+		// 将 WaitNode 入队
+    else if (!queued)
+      queued = UNSAFE.compareAndSwapObject(this, waitersOffset,                                         
+                                           q.next = waiters, q);
+    // 超时的话重新计算超时时间
+    else if (timed) {
+      nanos = deadline - System.nanoTime();
+      if (nanos <= 0L) {
+        removeWaiter(q);
+        return state;
+      }
+      LockSupport.parkNanos(this, nanos);
+    }
+    // 阻塞当前线程
+    else
+      LockSupport.park(this);
+  }
+}
+```
+
+
+
+### invokeAny
+
+```java
+private <T> T doInvokeAny(Collection<? extends Callable<T>> tasks,
+                          boolean timed, long nanos)
+  throws InterruptedException, ExecutionException, TimeoutException {
+  if (tasks == null)
+    throw new NullPointerException();
+  // task 数量
+  int ntasks = tasks.size();
+  if (ntasks == 0)
+    throw new IllegalArgumentException();
+  ArrayList<Future<T>> futures = new ArrayList<Future<T>>(ntasks);
+  // 该类包装了 ThreadPoolExecutor，提供了 poll，take 等方法
+  ExecutorCompletionService<T> ecs = new ExecutorCompletionService<T>(this);
+  
+  try {
+    ExecutionException ee = null;
+    // 计算超时时间
+    final long deadline = timed ? System.nanoTime() + nanos : 0L;
+    
+    Iterator<? extends Callable<T>> it = tasks.iterator();
+    // 先向线程池中提交一个 task
+    futures.add(ecs.submit(it.next()));
+    --ntasks;   // 计数自减
+    int active = 1;
+
+    for (;;) {
+      // f 会被包装成QueueingFuture对象，其完成时才会被添加到队列中
+      Future<T> f = ecs.poll();
+      // 为空，说明还未执行
+      if (f == null) {
+        if (ntasks > 0) {  // 还有 task
+          --ntasks;
+          // 继续向线程池中提交
+          futures.add(ecs.submit(it.next()));
+          ++active;
+        }
+        else if (active == 0)
+          break;
+        // 超时，重新计算时间
+        else if (timed) {  
+          f = ecs.poll(nanos, TimeUnit.NANOSECONDS);
+          if (f == null)
+            throw new TimeoutException();
+          nanos = deadline - System.nanoTime();
+        }
+        // 就一个 task
+        else
+          f = ecs.take(); // 阻塞等待 task 的完成
+      }
+      // 不为空，说明在执行中
+      if (f != null) {
+        --active;
+        try {
+          // 获取 task 结果
+          return f.get();
+        } catch (ExecutionException eex) {
+          ee = eex;
+        } catch (RuntimeException rex) {
+          ee = new ExecutionException(rex);
+        }
+      }
+    }
+
+    if (ee == null)
+      ee = new ExecutionException();
+    throw ee;
+
+  } finally {
+    // 遍历
+    for (int i = 0, size = futures.size(); i < size; i++)
+      // 对每个 task 进行取消
+      futures.get(i).cancel(true);
+  }
+}
+```
+
+
+
+### invokeAll
+
+```java
+public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
+  throws InterruptedException {
+	
+  ArrayList<Future<T>> futures = new ArrayList<Future<T>>(tasks.size());
+  boolean done = false;
+  try {
+    // 遍历 task
+    for (Callable<T> t : tasks) {
+      // 包装成 RunnableFuture
+      RunnableFuture<T> f = newTaskFor(t);
+      futures.add(f);
+      // 提交 task 并执行
+      execute(f);
+    }
+    // 遍历提交的 Future
+    for (int i = 0, size = futures.size(); i < size; i++) {
+      Future<T> f = futures.get(i);
+      // 判断是否完成
+      if (!f.isDone()) {
+        try {
+          // 获取结果
+          f.get();
+        } catch (CancellationException ignore) {
+        } catch (ExecutionException ignore) {
+        }
+      }
+    }
+    done = true;
+    return futures; // 返回
+  } finally {
+    if (!done)  // 未完成
+      for (int i = 0, size = futures.size(); i < size; i++)
+        // 取消 FutureTask
+        futures.get(i).cancel(true);
+  }
+}
+```
+
+
 
 
 
@@ -253,15 +649,19 @@ public interface ThreadFactory {
 
 
 
-### 任务执行
 
-了解完线程池的创建参数后, 就可以创建一个线程池了, 这时就需要关注线程池是如何提交任务. 在线程池中submit 无论是提交 Runnable 还是 Callable 最终都会调用 execute 方法.
 
-#### `execute`
 
-##### **源代码**
 
-先来看看源代码, 分析一下 execute 方法具体执行流程
+
+
+## 线程池启动
+
+线程池开启执行的动作由 execute 方法触发，查看 execute 方法了解线程池任务的执行流程和细节。
+
+### execute
+
+#### 代码
 
 ```java
 public void execute(Runnable command) {
@@ -296,7 +696,7 @@ public void execute(Runnable command) {
 }
 ```
 
-##### **执行流程**
+#### **执行流程**
 
 - 步骤1: 获取线程数并判断线程池中的线程是否小于核心线程数
   - 小于则添加一个Worker(addWorker方法)
@@ -318,49 +718,9 @@ public void execute(Runnable command) {
 
 
 
-#### Worker
+### addWorker
 
-##### 简介
-
-Worker 主要维护线程运行任务的中断控制状态，以及其他次要记录。同时扩展了AbstractQueuedSynchronizer来简化获取和释放围绕每个任务执行的锁。
-
-这可以防止旨在唤醒工作线程等待任务的中断，而不是中断正在运行的任务。
-
-我们实现了一个简单的`非可重入互斥锁`，而不是使用ReentrantLock，因为我们不希望辅助任务在调用诸如setCorePoolSize之类的池控制方法时能够重新获取该锁。
-另外，为了抑制直到线程真正开始运行任务之前的中断，我们将锁定状态初始化为负值，并在启动时将其清除（在runWorker中）。
-
-
-
-##### 核心字段
-
-```java
-/** Worker运行的线程 */
-final Thread thread;
-/** 初始化Worker时要执行的task */
-Runnable firstTask;
-```
-
-
-
-##### 构造函数
-
-```java
-Worker(Runnable firstTask) {
-  setState(-1); 
-  this.firstTask = firstTask;
-  this.thread = getThreadFactory().newThread(this); // 调用 ThreadFactory 创建线程
-}
-```
-
-
-
-看完 Worker 类,我们知道了 Worker 就是一个工作线程, 而线程池中的 task 也是由 Worker 来执行的.
-
-接下来回到 execute 方法中继续分析 addWorker 方法
-
-#### `addWorker`
-
-##### 源代码
+#### 代码
 
 ```java
 private boolean addWorker(Runnable firstTask, boolean core) {
@@ -428,7 +788,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 
 
-##### 执行流程
+#### 执行流程
 
 大致分为两个阶段: 
 
@@ -447,7 +807,7 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
 
 
-#### addWorkerFailed
+#### 添加失败
 
 当 Worker 创建完成后, 如果其线程启动失败则会执行`addWorkerFailed`方法来对线程池做一个回滚操作
 
@@ -466,43 +826,53 @@ private void addWorkerFailed(Worker w) {
 }
 ```
 
-##### 线程池终止
-
-`tryTerminate` 大致逻辑是: 当线程池处于 `SHUTDOWN 且队列为空`或处于` STOP 且队列为空`时将线程池状态转变成`TERMINATED`. 如果可以终止,但 workerCount 不为 0 则中断一个空闲 Worker 保证传播关闭信号.
 
 
+这里只需要记住`tryTerminate`用于终止线程池，后面线程池关闭会讲解。
 
-#### Worker.run
+## Worker
 
-##### 描述
 
-从上面的代码中我们看到了当Worker 新建成功后会调用其 `Thread.start`方法. 那 Runnable 是在何时传递给这个线程的呢?
 
-查看 Worker 的构造函数得知:
+### 简介
+
+Worker 主要维护线程运行任务的中断控制状态，以及其他次要记录。同时扩展了AbstractQueuedSynchronizer来简化获取和释放围绕每个任务执行的锁。
+
+这可以防止旨在唤醒工作线程等待任务的中断，而不是中断正在运行的任务。
+
+我们实现了一个简单的`非可重入互斥锁`，而不是使用ReentrantLock，因为我们不希望辅助任务在调用诸如setCorePoolSize之类的池控制方法时能够重新获取该锁。
+另外，为了抑制直到线程真正开始运行任务之前的中断，我们将锁定状态初始化为负值，并在启动时将其清除（在runWorker中）。
+
+
+
+### 核心字段
 
 ```java
-this.thread = getThreadFactory().newThread(this);
+/** Worker运行的线程 */
+final Thread thread;
+/** 初始化Worker时要执行的task */
+Runnable firstTask;
 ```
 
-因为 Worker 本身继承了 AQS 且实现了 Runnable 接口, 所以当调用了 Thread.start 方法会执行 Worker.run 方法.
 
 
-
-##### 代码
+### 构造函数
 
 ```java
-public void run() {
-    runWorker(this);
+Worker(Runnable firstTask) {
+  setState(-1); 
+  this.firstTask = firstTask;
+  this.thread = getThreadFactory().newThread(this); // 调用 ThreadFactory 创建线程
 }
 ```
 
-在 Worker.run 方法调用了 runWorker 方法
 
 
+### Worker执行
 
-##### 运行 Worker
+由于 Worker 实现了 Runnable 接口，并在 addWorker 中调用了 Worker 中 Thread.start 方法，最后知道 runWorker。
 
-先来看看 runWorker 的代码, 简单梳理一下流程:
+#### 代码
 
 ```java
 final void runWorker(Worker w) {
@@ -515,25 +885,23 @@ final void runWorker(Worker w) {
   try {
     // step2: 循环获取任务
     while (task != null || (task = getTask()) != null) {
+			// 此处加锁表示当前 Worker 正在运行。与后续 shutdown 中呼应。
       w.lock(); 
-      // 线程池如果停止,保证线程中断,反之保证线程非中断
+      // （线程未停止或清除线程标识位）且 线程设置过标识位
       if ((runStateAtLeast(ctl.get(), STOP) || (Thread.interrupted() &&
 					runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted()){
-         wt.interrupt();  // 中断Worker线程
+         wt.interrupt();  // 设置中断标识位
       }
 
       try {
-        // step3: 执行前操作
+        // 钩子函数
         beforeExecute(wt, task);
+        
         Throwable thrown = null;
         try {
-          task.run();  // 调用Runnable.run方法
-        } catch (RuntimeException x) {
-          thrown = x; throw x;
-        } catch (Error x) {
-          thrown = x; throw x;
-        } catch (Throwable x) {
-          thrown = x; throw new Error(x);
+          // 执行 task，此时可能出现异常
+          task.run();  
+        // 忽略异常的处理
         } finally {
           afterExecute(task, thrown);  // step4: 执行后操作
         }
@@ -543,9 +911,11 @@ final void runWorker(Worker w) {
         w.unlock();
       }
     }
+    // 上面的代码未出现异常会执行此行代码，出现异常是不会执行此行代码
+    // 此标识位关系到下面processWorkerExit方法的执行逻辑
     completedAbruptly = false;
   } finally {
-    // setp5: 当 task.run 出现异常时执行, 销毁当前 Worker
+    // setp5: task.run 前置和后置处理出现 或 getTask 出现异常
     processWorkerExit(w, completedAbruptly);
   }
 }
@@ -553,7 +923,7 @@ final void runWorker(Worker w) {
 
 
 
-##### 执行流程
+#### 执行流程
 
 1. 获取 Worker 的线程, 并解锁(Worker 构造时已经加锁了), 初始 task 为空则调用 `getTask` 获取任务
 2. task 执行前先加锁, 避免线程池状态更改时(`SHUTDOWN`), task 执行了
@@ -564,15 +934,15 @@ final void runWorker(Worker w) {
 
 
 
-<img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20210305112210966.png" alt="image-20210305112210966"  />
+![image-20210323155115259](https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20210323155115259.png)
 
 
 
-#### `getTask`
+### 获取任务
 
 在 Worker 的启动代码中知道了 Worker 是如何执行 task 的, 缺不太了解是如何获取 Task 的, 而获取 Task 则是调用 getTask 方法实现的.
 
-##### 方法简介
+#### 简介
 
 该方法根据当前线程池的配置来设置阻塞或定时获取任务, 但出现以下一些情况则会返回 null:
 
@@ -583,7 +953,7 @@ final void runWorker(Worker w) {
 
 
 
-##### 源代码
+#### 代码
 
 ```java
 private Runnable getTask() {
@@ -628,7 +998,7 @@ private Runnable getTask() {
 
 
 
-##### 执行流程
+#### 执行流程
 
 1. 开启自旋, 判断线程池状态, 如果处于 SHUTDOWN 或 STOP 或 队列为空 则直接返回 null
 2. 获取到 workerCount, 判断是否开启核心线程超时(`allowCoreThreadTimeOut`)
@@ -644,17 +1014,29 @@ private Runnable getTask() {
 
 
 
-#### `processWorkerExit`
+### Worker退出
 
-##### 简介
+#### 简介
 
-该方法用于销毁当前 Worker, 当 `getTask 返回 null`, 或 `workerCount > maximumPoolSize `就会销毁当前 Worker
+该方法用于处理 Worker 的退出逻辑，completedAbruptly的取值有以下两种情况：
 
-##### 源代码
+- `completedAbruptly=true`：默认值。
+- `completedAbruptly=false`：runWorker 中循环结果时会执行`completedAbruptly = false`。
+
+
+
+该方法会执行的条件有一下：
+
+1. 当`beforeExecute、afterExecute、task.run()`三个方法出现异常。
+2. `getTask` 返回 `null`。
+
+
+
+#### 代码
 
 ```java
 private void processWorkerExit(Worker w, boolean completedAbruptly) {
-  // completedAbruptly: 标识当前 Worker 是否是因为task 执行异常而需要销毁的
+  // completedAbruptly: 标识当前 Worker 是否是因为 task 执行异常而需要销毁的
   if (completedAbruptly)
     decrementWorkerCount();
 
@@ -669,30 +1051,31 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
   }
 
   // step2: 尝试终止此 Worker
-  tryTerminate();   		// 此方法在 addWorker 失败时调用的一致
+  tryTerminate();   	
 
   int c = ctl.get();
-  if (runStateLessThan(c, STOP)) {   // 线程池未处于 STOP 状态
-    if (!completedAbruptly) { // 条件成立, 说明不是因为异常导致此 Worker 销毁, 可能是队列没有任务
+  // step3: 线程池处于 SHUTDOWN 或 RUNNING 状态
+  if (runStateLessThan(c, STOP)) {   
+    // step4: 判断是否是用户异常导致 Worker 退出
+    // true：标识用户 task 出现异常
+    // false：标识 getTask 返回 null，即超时获取或线程被中断（调用 shutdown 方法）
+    if (!completedAbruptly) { 
       int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
-      if (min == 0 && ! workQueue.isEmpty())   // 如果队列不为空
+      if (min == 0 && ! workQueue.isEmpty())   // 如果队列不为空，则需要线程来执行 task
         min = 1;
+      // 如果不成立。则说明工作线程为 0，需要创建一个 Worker 执行任务
       if (workerCountOf(c) >= min)
-        return; // replacement not needed
+        return;
     }
-    // 进入到这里有两个可能:
-    // 1. completedAbruptly=false, 在 runWorker 中只有 while 循环条件不满足才会执行
-    // 2. 上面的if (workerCountOf(c) >= min) 判断不成立, 即 workerCount<corePoolSize
-    
-    // 此时创建一个新的 Worker 来替换此 Worker
-    addWorker(null, false);
+    // step5: 执行到这里的可能:
+    // 1. completedAbruptly=false
+    // 2. 上面的if (workerCountOf(c) >= min) 判断不成立, 即 workerCount = 0
+    addWorker(null, false);   // 新建一个 Worker
   }
 }
 ```
 
-
-
-### 线程池关闭
+## 线程池停止
 
 线程池关闭有两个方法可以进行操作: `shutdown` `shutdownNow`
 
@@ -702,6 +1085,196 @@ private void processWorkerExit(Worker w, boolean completedAbruptly) {
 
 - `shutdownNow` : 尝试停止所有正在执行的任务, 从队列中删除等待执行的 task 并返回
   - 此实现通过`Thread.interrupt`取消任务，因此任何无法响应中断的任务都可能永远不会终止。
+
+
+
+#### shutdown
+
+代码
+
+```java
+public void shutdown() {
+  final ReentrantLock mainLock = this.mainLock;
+  mainLock.lock();
+  try {
+    checkShutdownAccess(); // 忽略
+    // 变更线程池状态
+    advanceRunState(SHUTDOWN);  
+    // 中断空闲 Worker
+    interruptIdleWorkers();
+    // 钩子函数
+    onShutdown(); 
+  } finally {
+    mainLock.unlock();
+  }
+  // 尝试终止线程池
+  tryTerminate();
+}
+```
+
+`tryTerminate` 后面会做讲解，这里不再阐述。重点关注`interruptIdleWorkers`方法。
+
+##### interruptIdleWorkers
+
+```java
+private void interruptIdleWorkers() {
+  interruptIdleWorkers(false);
+}
+// 中断空闲 Worker
+private void interruptIdleWorkers(boolean onlyOne) {
+  final ReentrantLock mainLock = this.mainLock;
+  mainLock.lock();
+  try {
+    //  遍历所有的 Worker
+    for (Worker w : workers) {
+      Thread t = w.thread;
+      // 判断 Worker 是否设置过中断标识位
+      // tryLock=true: 表示此 Worker 未运行。tryLock=false: 表示此 Worker 正在运行。
+      // runWorker 方法中的 while 循环在执行时会获取锁。
+      if (!t.isInterrupted() && w.tryLock()) {
+        try {
+          t.interrupt(); // 设置中断标识位
+        } catch (SecurityException ignore) {
+        } finally {
+          w.unlock();
+        }
+      }
+      // 如果只中断一个则直接返回
+      if (onlyOne)
+        break;
+    }
+  } finally {
+    mainLock.unlock();
+  }
+}
+```
+
+通过 tryLock 来判断当前 Worke 是否空闲，因为Worker 在运行时会先获取到锁才会执行。
+
+
+
+#### shutdownNow
+
+```java
+public List<Runnable> shutdownNow() {
+  List<Runnable> tasks;
+  final ReentrantLock mainLock = this.mainLock;
+  mainLock.lock();
+  try {
+    checkShutdownAccess();  // 忽略
+    // 设置状态
+    advanceRunState(STOP);  
+    // 中断线程
+    interruptWorkers();  
+    // 获取为执行完成的 Task
+    tasks = drainQueue();
+  } finally {
+    mainLock.unlock();
+  }
+  // 尝试终止线程池
+  tryTerminate();
+  return tasks;
+}
+```
+
+重点关注 drainQueue 和 interruptWorkers 两个方法。
+
+##### interruptWorkers
+
+```java
+private void interruptWorkers() {
+  final ReentrantLock mainLock = this.mainLock;
+  mainLock.lock();
+  try {
+    for (Worker w : workers)
+      w.interruptIfStarted();
+  } finally {
+    mainLock.unlock();
+  }
+}
+
+void interruptIfStarted() {
+  Thread t;
+  // 持有锁且（线程不为空且线程未设置过中断标识位）
+  if (getState() >= 0 && (t = thread) != null && !t.isInterrupted()) {
+    try {
+      t.interrupt();  // 设置中断标识位
+    } catch (SecurityException ignore) {
+    }
+  }
+}
+```
+
+##### drainQueue
+
+通常使用drainTo将任务队列排放到新集合中。 但是，如果队列是DelayQueue或其他类型的队列，但poll或drainTo可能无法删除某些元素，则将其逐个删除。
+
+```java
+private List<Runnable> drainQueue() {
+  BlockingQueue<Runnable> q = workQueue;
+  ArrayList<Runnable> taskList = new ArrayList<Runnable>();
+  q.drainTo(taskList);
+  // 队列可能为DelayQueue，drainTo方法可能不生效
+  if (!q.isEmpty()) {
+    for (Runnable r : q.toArray(new Runnable[0])) {
+      if (q.remove(r))
+        taskList.add(r);
+    }
+  }
+  return taskList;
+}
+```
+
+
+
+#### treTerminate
+
+在 shutdown 和 shutdownNow 两个方法中都调用了tryTerminate方法。
+
+该方法作用是当线程处于(SHUTDOWN `或` 队列为空)`或` (STOP `或` 队列为空)时将线程池状态置为TERMINATED。
+
+
+
+```java
+final void tryTerminate() {
+  for (;;) {
+    int c = ctl.get();
+    // step1: 判断线程池状态。可能出现的情况如下:
+    // 1.线程池处于 RUNNING 状态，直接返回
+    // 2.线程池处于 SHUTDOWN 或 STOP 状态，避免重复
+    // 3.线程池处于 SHUTDOWN 且队列不为空，直接返回（消费队列中的任务）
+    if (isRunning(c) ||
+        runStateAtLeast(c, TIDYING) ||
+        (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
+      return;
+    
+    // 如果工作线程不为 0，则中断一个空闲的工作线程
+    if (workerCountOf(c) != 0) {
+      // 中断一个空闲的工作线程
+      interruptIdleWorkers(ONLY_ONE);
+      return;
+    }
+
+    final ReentrantLock mainLock = this.mainLock;
+    mainLock.lock();
+    try {
+      if (ctl.compareAndSet(c, ctlOf(TIDYING, 0))) {
+        try {
+          // 钩子函数
+          terminated();
+        } finally {
+          ctl.set(ctlOf(TERMINATED, 0));
+          // 唤醒所有等待持有 mainLock 锁的线程
+          termination.signalAll();
+        }
+        return;
+      }
+    } finally {
+      mainLock.unlock();
+    }
+  }
+}
+```
 
 
 
