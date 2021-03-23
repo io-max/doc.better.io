@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=&#34;auto&#34;>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <link rel="icon" href="https://better-io-blog.oss-cn-beijing.aliyuncs.com/netty.png">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  
+    <meta name="description" content="
+本章讲解如下：
+
+Volatile 关键字的作用？
+Volatile 是如何保证有序性？如何保证可见性？
+
+">
+  
+  <meta name="author" content="Better.Chen">
+  <meta name="keywords" content="">
+  
+  <title>Volatile 解析 - IO.BETTER的博客</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css" />
+  <link  rel="stylesheet" href="/lib/hint/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.4.0/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+  
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_kmeydafke9r.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"doc.io-better.cn","root":"/","version":"1.8.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"onlypost":false},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null}}};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand"
+       href="/">&nbsp;<strong>IO.BETTER</strong>&nbsp;</a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" data-toggle="modal" data-target="#modalSearch">&nbsp;<i
+                class="iconfont icon-search"></i>&nbsp;</a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" href="javascript:">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/back.webp') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Volatile 解析">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2021-03-23 07:55" pubdate>
+        2021年3月23日 早上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      1.5k 字
+    </span>
+  
+
+  
+    
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      17
+       分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Volatile 解析</h1>
+            
+            <div class="markdown-body">
+              <blockquote>
+<p>本章讲解如下：</p>
+<ul>
+<li>Volatile 关键字的作用？</li>
+<li>Volatile 是如何保证有序性？如何保证可见性？</li>
+</ul>
+</blockquote>
+<span id="more"></span>
+
+
+<h2 id="Volatile"><a href="#Volatile" class="headerlink" title="Volatile"></a><em>Volatile</em></h2><h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>知道了 Synchronized 关键字可以保证在高并发下的<code>可见性，有序性，原子性</code>，今天来看看 Volatile 这个关键字的作用。</p>
+<h3 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h3><p>保证在多线程的情况下程序的<code>可见性</code>和<code>有序性</code>。</p>
+<p>对 Volatile 修饰变量的单次读写是可以保证原子性的，复合操作则不行例如：++i 或 i+=1</p>
+<h3 id="实现原理"><a href="#实现原理" class="headerlink" title="实现原理"></a>实现原理</h3><p>从两个方面讲解 Volatile 的实现原理，分别是：<code>可见性的实现</code>和<code>有序性的实现</code></p>
+<h4 id="可见性实现原理"><a href="#可见性实现原理" class="headerlink" title="可见性实现原理"></a>可见性实现原理</h4><blockquote>
+<p>可见性的实现是基于<code>内存屏障</code></p>
+</blockquote>
+<h5 id="什么是内存屏障？"><a href="#什么是内存屏障？" class="headerlink" title="什么是内存屏障？"></a><strong>什么是内存屏障？</strong></h5><p>所谓内存屏障就是内存栅栏，即一道 CPU 指令。</p>
+<h5 id="lock-指令"><a href="#lock-指令" class="headerlink" title="lock 指令"></a>lock 指令</h5><p>而 Volatile 就是使用 lock 前缀指令来实现的，在多核 CPU 下遇到 lock 前缀会引发触发下拉事件：</p>
+<ul>
+<li>将当前处理器缓存行中的数据写回内存。</li>
+<li>写回内存的操作会使缓存了此内存地址的数据无效</li>
+</ul>
+<p>汇编代码如下：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20210315143739503.png" srcset="/img/loading.gif" alt="image-20210315143739503"></p>
+<p>如果对声明了 volatile 的变量进行写操作，JVM 就会向处理器发送一条 lock 前缀的指令，将这个变量所在缓存行的数据写回到系统内存。</p>
+<p>为了保证各个处理器的缓存是一致的，实现了<code>缓存一致性协议(MESI)</code>，每个处理器通过嗅探在总线上传播的数据来检查自己缓存的值是否过期，当处理器发现自己缓存行对应的内存地址被修改（Modify），就会将当前处理器的缓存行设置成无效状态（Invalid），当处理器对这个数据进行修改操作的时候，会重新从系统内存中把数据读到处理器缓存里。</p>
+<h5 id="缓存行"><a href="#缓存行" class="headerlink" title="缓存行"></a>缓存行</h5><p>在早期的CPU 中 lock 前缀指令会产生一个<code>LOCK#信号</code>，会导致锁住整个<code>总线</code>，其他CPU 对内存的读写都将阻塞。</p>
+<p>这会大大的影响性能，后来的 CPU 都将范围缩小到各个 CPU 的高速缓存。通过缓存一致性协议实现。</p>
+<p>而缓存是分段（一行一行）的，一个段对应一块存储空间，称之为缓存行，它是 CPU 缓存中可分配的最小存储单元，大小 32 字节、64 字节、128 字节不等，通常来说是 64 字节。</p>
+<p><strong>示例代码</strong></p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> T[] arr = <span class="hljs-keyword">new</span> T[<span class="hljs-number">2</span>];
+
+<span class="hljs-keyword">static</span> &#123;
+  arr[<span class="hljs-number">0</span>] = <span class="hljs-keyword">new</span> T();
+  arr[<span class="hljs-number">1</span>] = <span class="hljs-keyword">new</span> T();
+&#125;
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception </span>&#123;
+  Thread one = <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">1000_0000L</span>; i++) &#123;
+      arr[<span class="hljs-number">0</span>].x = i;
+    &#125;
+  &#125;);
+
+  Thread two = <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">long</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">1000_0000L</span>; i++) &#123;
+      arr[<span class="hljs-number">1</span>].x = i;
+    &#125;
+  &#125;);
+
+  <span class="hljs-keyword">final</span> <span class="hljs-keyword">long</span> start = System.nanoTime();
+  one.start();
+  two.start();
+
+  one.join();
+  two.join();
+  System.out.println((System.nanoTime() - start) / <span class="hljs-number">100_0000</span>);
+&#125;
+
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">T</span> </span>&#123;
+  <span class="hljs-comment">// public volatile long p1, p2, p3, p4, p5, p6, p7;</span>
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">long</span> x = <span class="hljs-number">0L</span>;
+&#125;</code></pre></div>
+
+<p>上面的代码中两个线程都对 x 这个 Volatile 变量进行缓存（各自 CPU 的高速缓存），当线程修改时会有以下情况：</p>
+<ul>
+<li>注释打开，此时一个 T 对象刚好占用一个缓存行，线程发生读写，两个线程互不影响。</li>
+<li>注释关闭，此时两个 T 对象占用一个缓存行，线程发生读写，会导致两个线程不断重置并获取最新值。</li>
+</ul>
+<h4 id="有序性实现原理"><a href="#有序性实现原理" class="headerlink" title="有序性实现原理"></a>有序性实现原理</h4><blockquote>
+<p>有序性的实现是基于 happens-before 和 内存屏障</p>
+</blockquote>
+<h5 id="happens-before"><a href="#happens-before" class="headerlink" title="happens-before"></a>happens-before</h5><p>happens-before 中有一个 Volatile 规则即：所有对这个 Volatile 域前的写操作都 happens-before 后面对这个 Volatile 域的读操作</p>
+<div class="code-wrapper"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> a;
+<span class="hljs-keyword">public</span> <span class="hljs-keyword">volatile</span> <span class="hljs-keyword">boolean</span> flag;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">read</span><span class="hljs-params">()</span> </span>&#123;
+  System.out.println(flag);  <span class="hljs-comment">// step3</span>
+  <span class="hljs-keyword">int</span> b = a;								 <span class="hljs-comment">// step4</span>
+&#125;
+
+<span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">write</span><span class="hljs-params">()</span> </span>&#123;
+  a++;           <span class="hljs-comment">// step1</span>
+  flag = <span class="hljs-keyword">true</span>;   <span class="hljs-comment">// step2 </span>
+&#125;</code></pre></div>
+
+<p>假设先调用 write 方法在调用 read 方法，则会有以下规则：</p>
+<ul>
+<li>程序次序规则：step1 happens-before step2 ，step3 happens-before step4</li>
+<li>Volatile 规则：setp1 happens-before step3， step2 happens-before step4</li>
+<li>传递性规则：step1 happens-before step4</li>
+</ul>
+<p>重排序有两种方式：<code>编译器重排序</code>和<code>处理器重排序</code>，为了实现volatile内存语义，JMM会对volatile变量限制这两种类型的重排序。下面是JMM针对volatile变量所规定的重排序规则表：</p>
+<ul>
+<li>编译器重排序：编译器级别即 Java 代码通过 Javac 编译出的字节码顺序和源代码不一致。</li>
+<li>处理器重排序：硬件和 CPU 级别的重排序，为了充分利用 CPU 的性能。</li>
+</ul>
+<p>规则表：</p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20210315173747043.png" srcset="/img/loading.gif" alt="image-20210315173747043"></p>
+<h5 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h5><p>而处理器重排序则使用了内存屏障来完成有序性，规则如下：</p>
+<ul>
+<li>在每个 Volatile 写操作的<code>前面</code>插入一个 StoreStore 屏障</li>
+<li>在每个 Volatile 写操作的<code>后面</code>插入一个 StoreLoad 屏障</li>
+<li>在每个 Volatile 读操作的<code>后面</code>插入一个 LoadLoad 屏障</li>
+<li>在每个 Volatile 读操作的<code>后面</code>插入一个 LoadStore 屏障</li>
+</ul>
+<p><strong>Volatile 写操作是在前面和后面分别插入内存屏障，而 Volatile 读操作是在后面插入了两个内存屏障。</strong></p>
+<p><img src="https://better-io-blog.oss-cn-beijing.aliyuncs.com/image-20210315174008943.png" srcset="/img/loading.gif" alt="image-20210315174008943"></p>
+<p>总结如下：</p>
+<ul>
+<li>当进行完普通读写时再次进行 Volatile 写时不支持重排序</li>
+<li>当进行完 Volatile 读后再次进行普通读写或 Volatile 读或 Volatile 写时不支持重排序</li>
+<li>当进行完 Volatile 写后再次进行 Volatile 读和 Volatile 写时不支持重排序</li>
+</ul>
+<p>可见性：LoadBarrier 和 StoreBarrier，LoadBarrier 作用是将其他线程对于共享变量的更新从其他处理器同步到当前线程的处理器，StoreBarrier 保证写线程对共享变量的更新对于其他读线程的处理器是可同步的。</p>
+<p><strong>不要使用 String 类型的对象来加锁</strong></p>
+<h2 id="面试题"><a href="#面试题" class="headerlink" title="面试题"></a>面试题</h2><h3 id="DCL-单例需要加-Volatile-关键字吗？"><a href="#DCL-单例需要加-Volatile-关键字吗？" class="headerlink" title="DCL 单例需要加 Volatile 关键字吗？"></a>DCL 单例需要加 Volatile 关键字吗？</h3><p>答案：</p>
+<p>需要加 Volatile 关键字，因为对象的创建分为三个步骤：</p>
+<ol>
+<li><p>申请内存（赋予默认值，int = 0）</p>
+</li>
+<li><p>对象赋值（用户指定的值）</p>
+</li>
+<li><p>对象指向目标（）</p>
+</li>
+</ol>
+<p>而这三个步骤可能会被 Jvm 重排序，可能 步骤 1 执行完直接就执行步骤 3</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                  <div class="post-meta mr-3">
+                    <i class="iconfont icon-category"></i>
+                    
+                      <a class="hover-with-bg" href="/categories/volatile/">volatile</a>
+                    
+                  </div>
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/Java/">Java</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Juc/">Juc</a>
+                    
+                      <a class="hover-with-bg" href="/tags/Volatile/">Volatile</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/03/23/thread/synchronized-resolve/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">Synchronized 解析</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/03/23/utils/hashmap_resolve/">
+                        <span class="hidden-mobile">HashMap 解析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+              <!-- Comments -->
+              <article class="comments" id="comments">
+                
+                  
+                
+                
+  <script type="text/javascript">
+    Fluid.utils.waitElementVisible('comments', function() {
+      var light = 'github-light';
+      var dark = 'github-dark';
+      var schema = document.documentElement.getAttribute('data-user-color-scheme');
+      if (schema === 'dark') {
+        schema = dark;
+      } else {
+        schema = light;
+      }
+      window.UtterancesThemeLight = light;
+      window.UtterancesThemeDark = dark;
+      var s = document.createElement('script');
+      s.setAttribute('src', 'https://utteranc.es/client.js');
+      s.setAttribute('repo', 'io-better/doc.io-better.cn.comment');
+      s.setAttribute('issue-term', 'title');
+      
+      s.setAttribute('label', 'doc.io-better.cn');
+      
+      s.setAttribute('theme', schema);
+      s.setAttribute('crossorigin', 'anonymous');
+      document.getElementById('comments').appendChild(s);
+    })
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+              </article>
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/io-better?tab=repositories" target="_blank" rel="nofollow noopener"><span>Github</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+<!-- SCRIPTS -->
+
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/debouncer.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  
+    <script  src="/js/lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/tocbot@4.12.0/dist/tocbot.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js" ></script>
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4.3.0/anchor.min.js" ></script>
+
+
+
+  <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js" ></script>
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+      typing(title)
+      
+    })(window, document);
+  </script>
+
+
+
+  <script  src="/js/local-search.js" ></script>
+  <script>
+    (function () {
+      var path = "/local-search.xml";
+      $('#local-search-input').on('click', function() {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      });
+      $('#modalSearch').on('shown.bs.modal', function() {
+        $('#local-search-input').focus();
+      });
+    })()
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+
+</body>
+</html>
