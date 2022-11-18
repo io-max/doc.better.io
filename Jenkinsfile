@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         JAVA_HOME = "/opt/jdk/jdk8u312-b07"
-        APPLICATION_NAME = "admin"
+        APPLICATION_NAME = "doc.io-better.cn"
     }
     options {
         skipDefaultCheckout true
@@ -20,7 +20,7 @@ pipeline {
         }
         stage('安装依赖') {
             tools {
-                nodejs 'node-v16.13.2'
+                nodejs 'nodejs'
             }
             steps {
                 sh 'npm --registry https://registry.npm.taobao.org install'
@@ -28,7 +28,7 @@ pipeline {
         }
         stage('构建') {
             tools {
-                nodejs 'node-v16.13.2'
+                nodejs 'nodejs'
             }
             steps {
                 sh 'hexo clean'
@@ -44,7 +44,7 @@ pipeline {
         }
         stage('部署') {
             tools {
-                nodejs 'node-v16.13.2'
+                nodejs 'nodejs'
             }
             steps {
                 sh 'mv public www.chenmc.cn'
